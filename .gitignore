@@ -1,3 +1,4 @@
 pru_firmware/*.bin
 build/
 .idea/
+*.pyc
