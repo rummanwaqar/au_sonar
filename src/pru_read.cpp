@@ -60,22 +60,19 @@ int main(int argc, char** argv) {
 	pparams->ddr_len = shared_ddr_len;
 
 	// load programs on to PRU units
-	prussdrv_exec_program(0, "./pru0-clock.bin");
-	prussdrv_exec_program(1, "./pru1-read-data.bin");
+	prussdrv_exec_program(0, "./firmware/pru0-clock.bin");
+	prussdrv_exec_program(1, "./firmware/pru1-read-data.bin");
 
 	// main loop
 	while(running) {
 		// wait for ping interrupt from PRU
-		int n = prussdrv_pru_wait_event(PRU_EVTOUT_1);
+		prussdrv_pru_wait_event(PRU_EVTOUT_1);
 
 		std::vector<hydrophone_t> ping_data;
 
 		// get read write pointers
 		volatile uint32_t *read_pointer = shared_ddr;
 		uint32_t *write_pointer_virtual = static_cast<uint32_t*>(prussdrv_get_virt_addr(pparams->shared_ptr));
-
-		// stats
-		int bytes_read = 0;
 
 		while(read_pointer != write_pointer_virtual) {
 			// copy data to local memory
