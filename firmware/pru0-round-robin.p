@@ -2,14 +2,15 @@
 
 /*
  * This code runs on PRU0. It generates a GPIO clock while alternating the 
- * analog switches to allow round robin sample on channel 0. 
+ * analog switches to allow round robin sample on channel 0. The signals are
+ * only generated when ping is available.
  * 
  * PRU clock is 200MHz = 5ns 
  * ADC clock runs at 2MHz (1MSPS on each input pair) 
  * 	no.of cycles = (PRU_CLOCK/SAMPLE_FREQUENCY) = 200MHz/2MHz = 100 cycles
  *  no.of half cycles = 50 cycles
  * 
- * Register 30:
+ * Register 30: (outputs)
  *	Bit 0: clock
  *  Bit 5 and 3: channel 0 input select (00=input_0, 01=input_1)
  *  Bit 1 and 2: channel 1 input select (00=input_4)
@@ -18,6 +19,9 @@
  * hydrophone_A = input_0
  * hydrophone_B = input_1
  * hydrophone_base = input_4
+ *
+ * Register 31: (inputs)
+ *  Bit 14: ping signal
  *
  * We need to switch channels on the analog muxes before we sample,
  * and the MAX4734 datasheet says that takes 25ns. The AD9201 has 4ns 
@@ -100,9 +104,20 @@ REPEAT:
 	// clock goes low, inputs=0,4
 	mov r30, 0x00
 	
-	PAUSE HALF_CYCLE_COUNT - 2
+	// if ping signal is low wait for it to get high
+	qbbc WAIT_PING, r31.t14
+	
+	// pause before switching to high again (minus 3 for two commands before and 1 after)
+	PAUSE HALF_CYCLE_COUNT - 3
 	
 	// loop back to start
 	qba REPEAT
 	
+	// never gets here (exit)
+	HALT
+	
+WAIT_PING:
+	// wait until bit is set
+	wbs r31.t14
+	qba REPEAT
 	
