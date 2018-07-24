@@ -35,6 +35,6 @@ This doc describes the GPIO pins and corresponding PRU registers used to interfa
 | pr1_pru1_pru_r31_9  	| P8_29    	| I    	| ADC data out                	|
 | pr1_pru1_pru_r31_10 	| P8_28    	| I    	| INPUT0B re-routed to PRU1   	|
 | pr1_pru1_pru_r31_11 	| P8_30    	| I    	| ADC clock re-routed to PRU1 	|
-| pr1_pru1_pru_r31_12 	| P8_21    	|      	| Unused                      	|
-| pr1_pru1_pru_r31_13 	| P8_20    	|      	| Unused                      	|
+| pr1_pru1_pru_r3x_12 	| P8_21    	|      	| Unused                      	|
+| pr1_pru1_pru_r31_13 	| P8_20    	| I    	| Ping signal                  	|
 | pr1_pru1_pru_r31_16 	| P9_26    	| I    	| INPUT0A re-routed to PRU1    	|
