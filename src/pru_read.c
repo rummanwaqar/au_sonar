@@ -54,7 +54,15 @@ int main(int argc, char** argv) {
 	prussdrv_exec_program(0, "./pru0-clock.bin");
 	prussdrv_exec_program(1, "./pru1-read-data.bin");
 
-	while(running);
+	// main loop
+	while(running) {
+		// wait for ping interrupt from PRU
+		int n = prussdrv_pru_wait_event(PRU_EVTOUT_1);
+		printf("got a ping\n");
+
+		// clear interrupt
+		prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+	}
 
 	printf("Quitting program\n");
 
