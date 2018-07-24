@@ -1,7 +1,7 @@
 # Beaglebone Pinout
 
 This doc describes the GPIO pins and corresponding PRU registers used to interface with the board.
-[scripts/setup_pins.sh initializes IO](scripts/setup_pins.sh)
+[scripts/setup_pins.sh](scripts/setup_pins.sh) initializes IO.
 
 ## System diagram
 ![System diagram](https://github.com/google/prudaq/wiki/conceptual_schematic.png)
