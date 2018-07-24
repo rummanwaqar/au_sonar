@@ -9,8 +9,8 @@
  *
  * Register 31: (inputs)
  *  Bit 0-9: ADC data out
- *  Bit 10: INPUT0B status
- *  Bit 16: INPUT0A status
+ *  Bit 10: INPUT0A status
+ *  Bit 16: INPUT0B status
  *  Bit 11: ADC clock status
  *  Bit 13: ping signal
  *

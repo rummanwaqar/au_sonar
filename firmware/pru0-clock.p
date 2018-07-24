@@ -12,8 +12,8 @@
  * 
  * Register 30: (outputs)
  *	Bit 0: clock
- *  Bit 5 and 3: channel 0 input select (00=input_0, 01=input_1)
- *  Bit 1 and 2: channel 1 input select (00=input_4)
+ *  Bit 2..1: channel 0 input select (00=input_0, 01=input_1)
+ *  Bit 5..3: channel 1 input select (00=input_4)
  *  Bit 7: ADC disable (pull low to enable)
  *
  * hydrophone_A = input_0
@@ -79,19 +79,19 @@ MAIN_LOOP:
 	NOP
 	
 	// switch mux to input 1
-	mov r30, (1 << 3) | 0x01
+	mov r30, (1 << 1) | 0x01
 	
 	// pause before switching to low again (minus 4 for the 4 commands above)
 	PAUSE HALF_CYCLE_COUNT - 4
 	
 	// clock goes low, inputs=1,4
-	mov r30, (1 << 3) | 0x00
+	mov r30, (1 << 1) | 0x00
 	
 	// pause before switching to high again
 	PAUSE HALF_CYCLE_COUNT - 1
 	
 	// clock goes high, inputs=1,4
-	mov r30, (1 << 3) | 0x01
+	mov r30, (1 << 1) | 0x01
 	
 	// wait 10ns for aperture delay
 	NOP
