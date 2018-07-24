@@ -9,10 +9,11 @@ This doc describes the GPIO pins and corresponding PRU registers used to interfa
 | PRU register        	| GPIO pin 	| Mode 	| Description              	|
 |---------------------	|----------	|------	|--------------------------	|
 | pr1_pru0_pru_r30_0  	| P9_31    	| O    	| GPIO generated ADC clock 	|
-| pr1_pru0_pru_r30_1  	| P9_29    	| O    	| INPUT0A                  	|
-| pr1_pru0_pru_r30_2  	| P9_30    	| O    	| INPUT0B                  	|
-| pr1_pru0_pru_r30_3  	| P9_28    	| O    	| INPUT1A                  	|
-| pr1_pru1_pru_r31_5  	| P9_27    	| O    	| INPUT1B                  	|
+| pr1_pru0_pru_r30_1  	| P9_29    	| O    	| INPUT1A                  	|
+| pr1_pru0_pru_r30_2  	| P9_30    	| O    	| INPUT1B                  	|
+| pr1_pru0_pru_r30_3  	| P9_28    	| O    	| INPUT0B                  	|
+| pr1_pru0_pru_r30_5  	| P9_27    	| O    	| INPUT0A                  	|
+| pr1_pru1_pru_r30_7  	| P9_25    	| O    	| ADC disable             	|
 | pr1_pru0_pru_r3x_14 	| P8_16    	|      	| Unused                   	|
 | pr1_pru0_pru_r3x_15 	| P8_15    	|      	| Unused                   	|
 | pr1_pru0_pru_r31_16 	| P9_24    	| I    	| Unused                   	|
