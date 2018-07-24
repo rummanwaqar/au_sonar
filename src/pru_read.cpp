@@ -1,18 +1,19 @@
 /*
- * Profiling
+ * Profiling (under 3% CPU)
  * 	Total processing of dataset = 10ms
  * 		Reading ping to vector = 6ms
  * 		Serialization = 3.5ms
  * 		Publishing data = 0.3ms
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <inttypes.h>
 #include <signal.h>
-#include <string.h>
+#include <cstring>
 #include <vector>
+#include <ctime>
 
 #include <prussdrv.h>
 #include <pruss_intc_mapping.h>
@@ -28,6 +29,13 @@ static int running = 1;
 
 void sig_handler(int sig) {
 	running = 0;
+}
+
+long int unix_timestamp()
+{
+    time_t t = std::time(0);
+    long int now = static_cast<long int> (t);
+    return now;
 }
 
 int main(int argc, char** argv) {
@@ -117,7 +125,7 @@ int main(int argc, char** argv) {
 			read_pointer += (8 / sizeof(*read_pointer));
 		}
 
-		printf("got a ping and received %d data points.\n", ping_data.size()/4);
+		printf(" [%ld] Got a ping and published %d data points.\n", unix_timestamp(), ping_data.size()/4);
 
 
 		// serialize data
