@@ -1,4 +1,16 @@
 /*
+ * Author: Rumman Waqar
+ *
+ * Runs a ZMQ publisher that publishes sonar data every time it receives a ping.
+ * The program takes in URL to PRU firmwares as arguments.
+ *
+ * The output data format is an array with n elements where n%4 == 0.
+ * The format of data output is [hydrophoneA, refA, hydrophoneB, refB, ... ] and
+ * the pattern repeats for n/4 times.
+ *
+ * The data is transmitted as 10-bit unsigned integers and should be converted to
+ * voltage appropriately.
+ *
  * Profiling (under 3% CPU)
  * 	Total processing of dataset = 10ms
  * 		Reading ping to vector = 6ms
