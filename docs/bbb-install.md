@@ -77,6 +77,8 @@ cd ~
 ```
 sudo apt-get install libzmq3-dev
 sudo pip install pyzmq
+sudo apt install libmsgpack-dev
+sudo apt install python-msgpack
 ```
 
 ### Downloading and building this repo
