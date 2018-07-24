@@ -80,6 +80,7 @@ sudo pip install pyzmq
 sudo apt install libmsgpack-dev
 sudo apt install python-msgpac
 sudo pip install -U platformio
+sudo apt install cmake
 ```
 
 ### Downloading and building this repo
