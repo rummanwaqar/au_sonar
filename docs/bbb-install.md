@@ -41,10 +41,11 @@ sudo reboot
 ```
 
 ### Modify boot settings (modify _/boot/uEnv.txt_) and enable UIO PRUSS
-* Disabled HDMI and Audio comment
+* Disabled HDMI, Audio and EMMC by uncommentting
 ```
 disable_uboot_overlay_video=1
 disable_uboot_overlay_audio=1
+disable_uboot_overlay_emmc=1
 ```
 * Enable UIO instead of remote proc by uncommenting `uboot_overlay_pru=/lib/firmware/AM335X-PRU-UIO-00A0.dtbo` and comment any other lines under PRUSS Options
 * Ensure Universal Cape is enabled (a.k.a uncommented)	
