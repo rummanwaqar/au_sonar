@@ -52,7 +52,6 @@ PAUSE_LOOP:
 .endm
 
 
-
 // entrypoint
 TOP:
 	// Enable OCP master ports in SYSCFG register
