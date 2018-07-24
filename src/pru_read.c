@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <signal.h>
+#include <string.h>
 #include <prussdrv.h>
 #include <pruss_intc_mapping.h>
 
@@ -58,7 +59,23 @@ int main(int argc, char** argv) {
 	while(running) {
 		// wait for ping interrupt from PRU
 		int n = prussdrv_pru_wait_event(PRU_EVTOUT_1);
-		printf("got a ping\n");
+
+		// get read write pointers
+		volatile uint32_t *read_pointer = shared_ddr;
+		uint32_t *write_pointer_virtual = prussdrv_get_virt_addr(pparams->shared_ptr);
+
+		// stats
+		int64_t bytes_read = 0;
+
+		while(read_pointer != write_pointer_virtual) {
+			// copy data to local memory
+			uint16_t data[4];
+			memcpy(data, (void*) read_pointer, 8);
+			// increment read pointer
+			read_pointer += (8 / sizeof(*read_pointer));
+			bytes_read += sizeof(data[0]) * 4;
+		}
+		printf("got a ping and received %dB of data\n", bytes_read);
 
 		// clear interrupt
 		prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
