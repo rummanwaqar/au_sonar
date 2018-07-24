@@ -76,6 +76,7 @@ cd ~
 ### Install dependencies
 ```
 sudo apt-get install libzmq3-dev
+sudo pip install pyzmq
 ```
 
 ### Downloading and building this repo
