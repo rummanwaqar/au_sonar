@@ -1,2 +1,2 @@
-firmware/*.bin
-pru_read
+pru_firmware/*.bin
+build/
