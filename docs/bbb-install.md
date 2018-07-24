@@ -75,12 +75,9 @@ cd ~
 
 ### Install dependencies
 ```
-sudo apt-get install libzmq3-dev
+sudo apt install cmake libzmq3-dev libmsgpack-dev python-msgpack
 sudo pip install pyzmq
-sudo apt install libmsgpack-dev
-sudo apt install python-msgpac
 sudo pip install -U platformio
-sudo apt install cmake
 ```
 
 ### Downloading and building this repo
