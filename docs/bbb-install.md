@@ -73,6 +73,11 @@ sudo cp pasm /usr/bin
 cd ~
 ```
 
+### Install dependencies
+```
+sudo apt-get install libzmq3-dev
+```
+
 ### Downloading and building this repo
 ```
 git clone https://github.com/arvpUofA/au_sonar.git
