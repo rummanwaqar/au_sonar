@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 		uint32_t *write_pointer_virtual = prussdrv_get_virt_addr(pparams->shared_ptr);
 
 		// stats
-		int64_t bytes_read = 0;
+		int bytes_read = 0;
 
 		while(read_pointer != write_pointer_virtual) {
 			// copy data to local memory
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 			read_pointer += (8 / sizeof(*read_pointer));
 			bytes_read += sizeof(data[0]) * 4;
 		}
-		printf("got a ping and received %" PRId64 "B of data\n", bytes_read);
+		printf("got a ping and received %.2fKB of data\n", bytes_read/1024.0);
 
 		// clear interrupt
 		prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
