@@ -12,26 +12,27 @@ include_directories(include)
 
 if(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
 	message(STATUS "Building Beaglebone specific targets")
+	
+	# pru_read executable
+	add_executable(pru_read src/pru_read.cpp)
+	target_link_libraries(pru_read prussdrv)
+	
+	# build PRU firmware
+	set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
+	set(PRU_FIRMWARE_OUTPUTS
+		"${PRU_WORKING_DIRECTORY}/pru0-clock.bin"
+		"${PRU_WORKING_DIRECTORY}/pru1-read-data.bin"
+	)
+	add_custom_command(
+		OUTPUT ${PRU_FIRMWARE_OUTPUTS}
+		COMMAND make all
+		WORKING_DIRECTORY "${PRU_WORKING_DIRECTORY}"
+		DEPENDS "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
+		COMMENT "Building PRU firmware"
+		VERBATIM
+	)
+	add_custom_target(pru_firmware ALL DEPENDS ${PRU_FIRMWARE_OUTPUTS})
 else()
 	message(WARNING "Not building Beaglebone specific targets")
 endif(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
 
-# pru_read executable
-add_executable(pru_read src/pru_read.cpp)
-target_link_libraries(pru_read prussdrv)
-
-# build PRU firmware
-set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
-set(PRU_FIRMWARE_OUTPUTS
-	"${PRU_WORKING_DIRECTORY}/pru0-clock.bin"
-	"${PRU_WORKING_DIRECTORY}/pru1-read-data.bin"
-)
-add_custom_command(
-	OUTPUT ${PRU_FIRMWARE_OUTPUTS}
-	COMMAND make all
-	WORKING_DIRECTORY "${PRU_WORKING_DIRECTORY}"
-	DEPENDS "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
-	COMMENT "Building PRU firmware"
-	VERBATIM
-)
-add_custom_target(pru_firmware ALL DEPENDS ${PRU_FIRMWARE_OUTPUTS})
