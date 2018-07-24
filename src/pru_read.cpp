@@ -1,3 +1,11 @@
+/*
+ * Profiling
+ * 	Total processing of dataset = 10ms
+ * 		Reading ping to vector = 6ms
+ * 		Serialization = 3.5ms
+ * 		Publishing data = 0.3ms
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -5,17 +13,16 @@
 #include <signal.h>
 #include <string.h>
 #include <vector>
+
 #include <prussdrv.h>
 #include <pruss_intc_mapping.h>
 
+#include <zmq.hpp>
+#include <msgpack.hpp>
+
 #include "shared_header.h"
 
-typedef struct {
-	uint16_t hydrophoneA;
-	uint16_t refA;
-	uint16_t hydrophoneB;
-	uint16_t refB;
-} hydrophone_t;
+#define SERVER_ADDRESS "tcp://127.0.0.1:9999"
 
 static int running = 1;
 
@@ -80,12 +87,19 @@ int main(int argc, char** argv) {
 	prussdrv_exec_program(0, argv[1]);
 	prussdrv_exec_program(1, argv[2]);
 
+	// start zmq publisher
+	zmq::context_t context(1);
+	zmq::socket_t publisher(context, ZMQ_PUB);
+	publisher.bind(SERVER_ADDRESS);
+
+	printf("Started ZMQ publisher at %s\n\n", SERVER_ADDRESS);
+
 	// main loop
 	while(running) {
 		// wait for ping interrupt from PRU
 		prussdrv_pru_wait_event(PRU_EVTOUT_1);
 
-		std::vector<hydrophone_t> ping_data;
+		std::vector<uint16_t> ping_data;
 
 		// get read write pointers
 		volatile uint32_t *read_pointer = shared_ddr;
@@ -95,18 +109,25 @@ int main(int argc, char** argv) {
 			// copy data to local memory
 			uint16_t data[4];
 			memcpy(data, (void*) read_pointer, 8);
-			hydrophone_t processed_data;
-			processed_data.hydrophoneA = data[0];
-			processed_data.refA = data[1];
-			processed_data.hydrophoneB = data[2] & 0x3ff;
-			processed_data.refB = data[3] & 0x3ff;
 
-			ping_data.push_back(processed_data);
+			// append to ping vector
+			ping_data.insert(ping_data.end(), std::begin(data), std::end(data));
 
 			// increment read pointer
 			read_pointer += (8 / sizeof(*read_pointer));
 		}
-		printf("got a ping and received %d data points.\n", ping_data.size());
+
+		printf("got a ping and received %d data points.\n", ping_data.size()/4);
+
+
+		// serialize data
+		msgpack::sbuffer serialized_buffer;
+		msgpack::pack(serialized_buffer, ping_data);
+
+		// publish ping data
+	    zmq::message_t message(serialized_buffer.size());
+	    memcpy(message.data(), serialized_buffer.data(), serialized_buffer.size());
+	    publisher.send(message);
 
 		// clear interrupt
 		prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
