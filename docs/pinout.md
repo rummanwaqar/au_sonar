@@ -1,6 +1,7 @@
 # Beaglebone Pinout
 
 This doc describes the GPIO pins and corresponding PRU registers used to interface with the board.
+[scripts/setup_pins.sh initializes IO](scripts/setup_pins.sh)
 
 ## System diagram
 ![System diagram](https://github.com/google/prudaq/wiki/conceptual_schematic.png)
@@ -13,8 +14,8 @@ This doc describes the GPIO pins and corresponding PRU registers used to interfa
 | pr1_pru0_pru_r30_2  	| P9_30    	| O    	| INPUT1B                  	|
 | pr1_pru0_pru_r30_3  	| P9_28    	| O    	| INPUT0B                  	|
 | pr1_pru0_pru_r30_5  	| P9_27    	| O    	| INPUT0A                  	|
-| pr1_pru1_pru_r30_7  	| P9_25    	| O    	| ADC disable             	|
-| pr1_pru0_pru_r3x_14 	| P8_16    	|      	| Unused                   	|
+| pr1_pru0_pru_r30_7  	| P9_25    	| O    	| ADC disable             	|
+| pr1_pru0_pru_r31_14 	| P8_16    	| I    	| Ping signal             	|
 | pr1_pru0_pru_r3x_15 	| P8_15    	|      	| Unused                   	|
 | pr1_pru0_pru_r31_16 	| P9_24    	| I    	| Unused                   	|
 
