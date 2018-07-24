@@ -19,8 +19,19 @@
  .origin 0
  .entrypoint TOP
  
+ #include <shared_header.h>
+ 
+ #define SHARED_RAM_ADDRESS 0x10000
  #define PRU1_R31_VEC_VALID 32
  #define PRU_EVTOUT_1 4
+ 
+ // scratch pad registers
+ #define SHARED_RAM r27		// shared PRU memory address
+ #define DDR_SIZE	r28		// global memory size
+ #define DDR		r29		// global memory address
+ #define MASK_REG	r12		// mask that lets us exlude unused GPIO
+ 
+ #define nop add r0, r0, 0
  
  TOP:
  	// enable OCP master ports in SYSCFG register
@@ -28,7 +39,15 @@
  	clr  r0, r0, 4
  	sbco r0, C4, 4, 4
  	
- 	//mov SHARED_RAM, SHARED_RAM_ADDRESS
+ 	// load address of PRU shared RAM in register
+ 	mov SHARED_RAM, SHARED_RAM_ADDRESS
+ 	// get address of shared global memory from shared RAM
+ 	lbbo DDR, SHARED_RAM, OFFSET(Params.physical_addr), SIZE(Params.physical_addr)
+ 	// get size of shared global memory from shared RAM
+ 	lbbo DDR_SIZE, SHARED_RAM, OFFSET(Params.ddr_len), SIZE(Params.ddr_len)
+ 	
+ 	// mask for incoming data. 10 bits of data. Bit on 10 will tell us which input is selected
+ 	mov MASK_REG, 0x000007ff
  	
  	// if ping signal is low wait for it to get high
  	qbbc WAIT_PING_NO_INTERRUPT, r31.t13
