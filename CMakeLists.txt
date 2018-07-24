@@ -4,13 +4,14 @@ project(au_sonar)
 # get system information
 cmake_host_system_information(RESULT SYSTEM_HOSTNAME QUERY HOSTNAME)
 message(STATUS "HOSTNAME: ${SYSTEM_HOSTNAME}")
+set(BBB_HOSTNAME "beaglebone")
 
 ## use this to globally use C++11 with in our project
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(include)
 
-if(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
+if(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
 	message(STATUS "Building Beaglebone specific targets")
 	
 	# pru_read executable
@@ -34,5 +35,5 @@ if(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
 	add_custom_target(pru_firmware ALL DEPENDS ${PRU_FIRMWARE_OUTPUTS})
 else()
 	message(WARNING "Not building Beaglebone specific targets")
-endif(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
+endif(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
 
