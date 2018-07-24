@@ -23,7 +23,8 @@
 
 #include "shared_header.h"
 
-#define SERVER_ADDRESS "tcp://127.0.0.1:9999"
+//#define SERVER_ADDRESS "tcp://127.0.0.1:9999"
+#define SERVER_ADDRESS "tcp://10.42.43.125:9999"
 
 static int running = 1;
 
@@ -118,15 +119,17 @@ int main(int argc, char** argv) {
 			uint16_t data[4];
 			memcpy(data, (void*) read_pointer, 8);
 
+			// use only first 10 bits that contain actual data
+			data[2] &= 0x3ff;
+			data[3] &= 0x3ff;
+
 			// append to ping vector
 			ping_data.insert(ping_data.end(), std::begin(data), std::end(data));
 
 			// increment read pointer
 			read_pointer += (8 / sizeof(*read_pointer));
 		}
-
 		printf(" [%ld] Got a ping and published %d data points.\n", unix_timestamp(), ping_data.size()/4);
-
 
 		// serialize data
 		msgpack::sbuffer serialized_buffer;
