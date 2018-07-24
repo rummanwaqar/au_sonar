@@ -30,6 +30,23 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
+	// check command line arguments for PRU firmware files
+	if (argc != 3) {
+		fprintf(stderr, "Usage: %s pru0_code.bin pru1_code.bin\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+
+	// check if files exist
+	if( access(argv[1], F_OK) == -1 ) {
+		fprintf(stderr, "ERROR: %s does not exist. Specify the correct PRU0 binary\n", argv[1]);
+		return EXIT_FAILURE;
+	}
+	if( access(argv[2], F_OK) == -1 ) {
+		fprintf(stderr, "ERROR: %s does not exist. Specify the correct PRU1 binary\n", argv[2]);
+		return EXIT_FAILURE;
+	}
+
+
 	// install signal handler
 	if(SIG_ERR == signal(SIGINT, sig_handler)) {
 		perror("Warn: signal handler not installed %d\n");
@@ -60,8 +77,8 @@ int main(int argc, char** argv) {
 	pparams->ddr_len = shared_ddr_len;
 
 	// load programs on to PRU units
-	prussdrv_exec_program(0, "./firmware/pru0-clock.bin");
-	prussdrv_exec_program(1, "./firmware/pru1-read-data.bin");
+	prussdrv_exec_program(0, argv[1]);
+	prussdrv_exec_program(1, argv[2]);
 
 	// main loop
 	while(running) {
