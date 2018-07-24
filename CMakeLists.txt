@@ -1,10 +1,20 @@
 cmake_minimum_required(VERSION 3.3)
 project(au_sonar)
 
+# get system information
+cmake_host_system_information(RESULT SYSTEM_HOSTNAME QUERY HOSTNAME)
+message(STATUS "HOSTNAME: ${SYSTEM_HOSTNAME}")
+
 ## use this to globally use C++11 with in our project
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(include)
+
+if(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
+	message(STATUS "Building Beaglebone specific targets")
+else()
+	message(WARNING "Not building Beaglebone specific targets")
+endif(${SYSTEM_HOSTNAME} STREQUAL "beaglebone")
 
 # pru_read executable
 add_executable(pru_read src/pru_read.cpp)
