@@ -55,9 +55,6 @@ int main(int argc, char** argv) {
 	prussdrv_exec_program(0, "./pru0-clock.bin");
 	prussdrv_exec_program(1, "./pru1-read-data.bin");
 
-	// max buffer size
-	volatile uint32_t *buffer_end = shared_ddr + (shared_ddr_len / sizeof(*shared_ddr));
-
 	// main loop
 	while(running) {
 		// wait for ping interrupt from PRU
@@ -78,10 +75,6 @@ int main(int argc, char** argv) {
 			// increment read pointer
 			read_pointer += (8 / sizeof(*read_pointer));
 			bytes_read += sizeof(data[0]) * 4;
-
-			if(read_pointer >= buffer_end) {
-				printf("BAD THINGS\n");
-			}
 		}
 		printf("got a ping and received %" PRId64 "B of data\n", bytes_read);
 
