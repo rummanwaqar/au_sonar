@@ -4,10 +4,18 @@
 #include <inttypes.h>
 #include <signal.h>
 #include <string.h>
+#include <vector>
 #include <prussdrv.h>
 #include <pruss_intc_mapping.h>
 
 #include "shared_header.h"
+
+typedef struct {
+	uint16_t hydrophoneA;
+	uint16_t refA;
+	uint16_t hydrophoneB;
+	uint16_t refB;
+} hydrophone_t;
 
 static int running = 1;
 
@@ -60,9 +68,11 @@ int main(int argc, char** argv) {
 		// wait for ping interrupt from PRU
 		int n = prussdrv_pru_wait_event(PRU_EVTOUT_1);
 
+		std::vector<hydrophone_t> ping_data;
+
 		// get read write pointers
 		volatile uint32_t *read_pointer = shared_ddr;
-		uint32_t *write_pointer_virtual = prussdrv_get_virt_addr(pparams->shared_ptr);
+		uint32_t *write_pointer_virtual = static_cast<uint32_t*>(prussdrv_get_virt_addr(pparams->shared_ptr));
 
 		// stats
 		int bytes_read = 0;
@@ -71,12 +81,18 @@ int main(int argc, char** argv) {
 			// copy data to local memory
 			uint16_t data[4];
 			memcpy(data, (void*) read_pointer, 8);
+			hydrophone_t processed_data;
+			processed_data.hydrophoneA = data[0];
+			processed_data.refA = data[1];
+			processed_data.hydrophoneB = data[2] & 0x3ff;
+			processed_data.refB = data[3] & 0x3ff;
+
+			ping_data.push_back(processed_data);
 
 			// increment read pointer
 			read_pointer += (8 / sizeof(*read_pointer));
-			bytes_read += sizeof(data[0]) * 4;
 		}
-		printf("got a ping and received %.2fKB of data\n", bytes_read/1024.0);
+		printf("got a ping and received %d data points.\n", ping_data.size());
 
 		// clear interrupt
 		prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
