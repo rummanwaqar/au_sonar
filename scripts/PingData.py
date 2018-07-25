@@ -1,3 +1,4 @@
+from __future__ import division
 import time
 import csv
 import os
@@ -22,10 +23,10 @@ class PingData(object):
         refA = []
         refB = []
         for i in range(0, len(data), 4):
-            hydrophoneA.append(data[i])
-            refA.append(data[i+1])
-            hydrophoneB.append(data[i+2])
-            refB.append(data[i+3])
+            hydrophoneA.append(PingData.__to_voltage(data[i]))
+            refA.append(PingData.__to_voltage(data[i+1]))
+            hydrophoneB.append(PingData.__to_voltage(data[i+2]))
+            refB.append(PingData.__to_voltage(data[i+3]))
         return cls(timestamp=timestamp, hydrophoneA=hydrophoneA, hydrophoneB=hydrophoneB, refA=refA, refB=refB)
 
     @classmethod
@@ -50,3 +51,7 @@ class PingData(object):
             return "ping received at {0} with {1} points".format(self.timestamp, len(self.hydrophoneA))
         else:
             return "empty ping object"
+
+    @staticmethod
+    def __to_voltage(data):
+        return data/1024*2.0
