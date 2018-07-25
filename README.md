@@ -25,7 +25,7 @@ Each command is run from the root in this example.
 | Ping available 	| P8_16 and P8_20                            	| Ping available signal from preprocesser to BBB 	|
 | UART TX        	| BBB RX (P9_11)                             	| Teensy serial communication TX                 	|
 | UART RX        	| BBB TX (P9_13)                             	| Teensy serial communication RX                 	|
-| DGND           	| BBB GND Pins (P8_1,2 | P9_1,2 | P9_43..46) 	| Digital ground                                 	|
+| DGND           	| BBB GND Pins (P8_1,2 + P9_1,2 + P9_43..46) 	| Digital ground                                 	|
 
 Yellow dots in the image below show the specified BBB pins.
 ![Wiring guide](docs/pinout_wiring.png)
