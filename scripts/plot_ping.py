@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-from __future__ import division
 import os
 import argparse
 from PingData import PingData
-import matplotlib.pyplot as plt
-import numpy as np
 
 def main():
     # read cli params
@@ -19,8 +16,6 @@ def main():
 
     ping = PingData.from_csv(filename)
     ping.plot()
-
-
 
 if __name__ == '__main__':
     main()
