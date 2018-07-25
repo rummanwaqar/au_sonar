@@ -13,7 +13,9 @@ make
 Each command is run from the root in this example.
 * Setup IO `./scripts/setup_pins.sh`
 * Start the data acqusition server `sudo ./build/pru_read ./pru_firmware/pru0-clock.bin ./pru_firmware/pru1-read-data.bin`
-* Run the python processing code `python ./scripts/sonar.py`
+
+### Saving pings to csv
+* Run the python processing code `python ./scripts/save_ping.py path [--angle angle]`.
 
 ## Wiring Guide
 | Input          	| BBB Pinout                                 	| Description                                    	|
