@@ -77,7 +77,7 @@ Sets the PEAK_CLEAR_PIN low (turns the BJT on) then ends the intervaltimer which
 
 # Communication Protocol
 
-See ![docs/CommInterface.md](docs/CommInterface.md) for information on the communication interface along with the communication protocol. 
+See [docs/CommInterface.md](docs/CommInterface.md) for information on the communication interface along with the communication protocol. 
 	
   
 
