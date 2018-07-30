@@ -1,5 +1,12 @@
-# au_sonar_firmware
-A repository for Teensy 3.2 firmware on sonar preprocessor V3 board
+# Preprocessor firmware
+Teensy 3.2 firmware on sonar preprocessor V3 board
+
+# Building code
+```
+platformio run
+platformio run -t upload
+```
+PlatformIO can be installed using the following command: `pip install -U platformio`
 
 # Functions
 
