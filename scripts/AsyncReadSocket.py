@@ -5,6 +5,7 @@ import msgpack
 import Queue
 from PingData import PingData
 
+
 class AsyncReadSocket(threading.Thread):
     def __init__(self, queue, address="10.42.43.125", port="9999"):
         # initialize ZMQ socket
