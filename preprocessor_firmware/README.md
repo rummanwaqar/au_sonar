@@ -75,9 +75,9 @@ Sets the PEAK_CLEAR_PIN high (turns the BJT off) then starts an intervaltimer to
 
 Sets the PEAK_CLEAR_PIN low (turns the BJT on) then ends the intervaltimer which would otherwise keep calling detectorlow every 25microseconds.
 
-# CommInterface Class and Communication Protocol
+# Communication Protocol
 
-See sonar_preprocessor_firmware/docs/CommInterface.md for information on the communication interface along with the communication protocol. 
+See ![docs/CommInterface.md](docs/CommInterface.md) for information on the communication interface along with the communication protocol. 
 	
   
 
