@@ -57,6 +57,7 @@ def main():
                 pass
             else:
                 logging.debug(data)
+                print(data)
                 data_queue.task_done()
     except ServiceExit:
         readSerialThread.shutdown_flag.set()
