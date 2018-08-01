@@ -52,11 +52,20 @@ class GainControl : public PeakDetector{
         //Method to manually set gain
         void setGain( float gain );
 
+        //Method to set the valid mean for calibration
+        void setValidMean( float _validMean );
+
+        //Method to set the valid variance for calibration
+        void setValidVariance( float _validVariance);
+
         //Set the amount the gain will be nudged after the nudge gain duration (dB)
         void setNudgeGainValue( float gain );
 
         //Get the current desired peak of the controller
         float getDesiredPeak( void );
+
+        //Get the current status of hold gain
+        bool getHoldGain( void );
 
         //Get the current "optimized" gain in dB as calculated by the Controller
         float getCurrentOptimalGain( void );
@@ -76,6 +85,12 @@ class GainControl : public PeakDetector{
 
         //Check if the gain is calibrated currently
         bool checkCalibration( void );
+
+        //Get the valid mean
+        float getValidMean( void );
+
+        //Get the valid variance
+        float getValidVariance( void );
 
 
     //Methods and variables that "Black Box" users should not be conserned with.
@@ -99,8 +114,15 @@ class GainControl : public PeakDetector{
         float error;  // error for the proportional gain
         float sumError; // error for the integral (summation) gain
 
+        void calculateVariance( void );
         double averagePeakLevel; //Variable to get the average peakLevel of the signal
         uint16_t averagePeakLevelCounter;
+        double averagePeakLevelSquared;
+        uint16_t averagePeakLevelSquaredCounter;
+        double variance;
+
+        float validMean;
+        float validVariance;
 
         //Returns the time elasped since calling millis on a 'timer'. A simple Helper function
         unsigned long elapsedTime( unsigned long millisTimer );
