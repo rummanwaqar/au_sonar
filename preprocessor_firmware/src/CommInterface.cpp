@@ -422,11 +422,9 @@ void CommInterface::prepareTransmission( void ){
 
     //variable index 13 and 14 are pingStatus and centerFreq respectively
     if ( (variableIndex == 13) || (variableIndex == 14 || (variableIndex == 16)) ){
-        Serial.print("$");
-        Serial.println(output_int);
+        Serial.print("$" + String(variables[variableIndex]) + " " + String(output_int) );
     } else {
-        Serial.print("$");
-        Serial.println(output_float);
+        Serial.print("$" + String(variables[variableIndex]) + " " + String(output_float) );
     }
 
     Serial.flush();
