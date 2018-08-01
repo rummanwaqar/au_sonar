@@ -197,16 +197,19 @@ void GainControl::runtime( void ){
             if( this->GainControl::checkCalibration() ){
                 Serial.println( "$ping cal=1 gain=" + String(optimalGain) +
                 " peakLevel=" + String(peakLevel) + " error=" + String(error) +
-                " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance) +
+                " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance, 5) +
                 " samples=" + String(averagePeakLevelCounter));
             } else {
                 Serial.println( "$ping cal=0 gain=" + String(optimalGain) +
                 " peakLevel=" + String(peakLevel) + " error=" + String(error) +
-                " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance) +
+                " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance, 5) +
                 " samples=" + String(averagePeakLevelCounter));
             }
             averagePeakLevelCounter = 0;
             averagePeakLevel = 0;
+
+            averagePeakLevelSquaredCounter = 0;
+            averagePeakLevelSquared = 0;
 
             Serial.flush();
         }
@@ -303,9 +306,10 @@ bool GainControl::checkCalibration( void ){
     this->GainControl::calculateVariance();
 
     if ( (averagePeakLevel > (desiredPeak-validMean))
-                                                && (averagePeakLevel < (desiredPeak + validMean))
-                                                && (variance < validVariance)
-                                                && (variance > (-1*validVariance)) ) {
+        && (averagePeakLevel < (desiredPeak + validMean))
+        && (variance < validVariance)
+        && (variance > (-1*validVariance)) ) {
+
         return true;
     } else {
         return false;
