@@ -24,7 +24,7 @@
 #define PINGVALIDSTART 200   //offset for the start of the ping (microseconds)
 #define PINGVALIDEND 1500    //offset for the end of the ping (microseconds)
 //A valid ping is 2*PEAK_NOISE
-#define PEAK_NOISE 0.4
+#define PEAK_NOISE 0.6
 //Power rail noise is 40mV
 
 //Constants for the filter
