@@ -16,7 +16,7 @@
 #define NUDGE_VALUE 0.1 //How much to nudge the gain up after the NUDGE_GAIN_DURATION
 //Default mean and variance values for the calibration flag
 #define DEFAULT_VALIDMEAN 0.25 //How far the mean can deviate from the desired peak value
-#define DEFAULT_VALIDVARIANCE 0.25 //How large the variance can be
+#define DEFAULT_VALIDVARIANCE 0.005 //How large the variance can be
 
 //Initializing constants for the peak detector
 #define Vref 2.5             //ADC reference
@@ -24,7 +24,7 @@
 #define PINGVALIDSTART 200   //offset for the start of the ping (microseconds)
 #define PINGVALIDEND 1500    //offset for the end of the ping (microseconds)
 //A valid ping is 2*PEAK_NOISE
-#define PEAK_NOISE 0.4
+#define PEAK_NOISE 0.6
 //Power rail noise is 40mV
 
 //Constants for the filter

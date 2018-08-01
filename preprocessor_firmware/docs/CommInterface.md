@@ -69,6 +69,10 @@ Currently there are 15 variables that can be accessed:
 
   "adcAveraging" a integer that sets how many samples the adc averages over
 
+  "validMean" a float. Its the maximum distance from the desiredPeak for the calibration to consider the mean of the signal valid.
+
+  "validVariance" a float. The maximum distance from zero that the variance can be for the calibration to consider the variance valid.
+
 ### Arguments
 
 Arguments are used in the case of a "set" command
@@ -93,12 +97,14 @@ After a ping, the gain controller will send some feed back informatio;
 
   "peakLevel" a float with 2 decimal precision. The current peak level of the peak detector
 
-  "error" a float with 2 decimal precision. The "error" of the controller
-
   "avgPkLv" a float with 2 decimal precision. The average peak level of the last ping.
+
+  "variance" a float with 5 decimal precision. The variance of the peak level of the last ping.
 
   "samples" a integer. The amount of peak detector samples, and thus the amount times gain control looped during the ping.
 
-Example: "$ping cal=0 gain=40.45 peakLevel=1.23 error=0.19 avgPkLv=1.28 samples=19"
+
+
+Example: "$ping cal=0 gain=40.45 peakLevel=1.23 avgPkLv=1.28 variance=0.00567 samples=19"
 
 Note: There's a new line character at the end of the string

@@ -368,6 +368,12 @@ void CommInterface::setValue( void ){
         case 16:
             gainControl->setADCAveraging(output_int);
             break;
+        case 17:
+            gainControl->setValidMean(output_float);
+            break;
+        case 18:
+            gainControl->setValidVariance(output_float);
+            break;
         default:
             //Do nothing
             break;
@@ -382,6 +388,9 @@ void CommInterface::sendLocalVariable( void ){
     switch(variableIndex){
         case 0:
             output_float = gainControl->getDesiredPeak();
+            break;
+        case 1:
+            output_int = gainControl->getHoldGain();
             break;
         case 2:
             output_float = gainControl->getProportionalGain();
@@ -403,6 +412,12 @@ void CommInterface::sendLocalVariable( void ){
             break;
         case 16:
             output_int = gainControl->getADCAveraging();
+            break;
+        case 17:
+            output_float = gainControl->getValidMean();
+            break;
+        case 18:
+            output_float = gainControl->getValidVariance();
         default:
             //Do nothing
             break;
@@ -421,10 +436,13 @@ bool CommInterface::validIncommingSerialMessage( void ){
 void CommInterface::prepareTransmission( void ){
 
     //variable index 13 and 14 are pingStatus and centerFreq respectively
-    if ( (variableIndex == 13) || (variableIndex == 14 || (variableIndex == 16)) ){
-        Serial.print("$" + String(variables[variableIndex]) + " " + String(output_int) );
+    if ( (variableIndex == 13) || (variableIndex == 14) || (variableIndex == 16)
+                                || ( variableIndex == 1) ){
+        Serial.print("$");
+        Serial.println(output_int);
     } else {
-        Serial.print("$" + String(variables[variableIndex]) + " " + String(output_float) );
+        Serial.print("$");
+        Serial.println(output_float);
     }
 
     Serial.flush();

@@ -32,6 +32,13 @@ GainControl::GainControl( void ){
     //Set up the invalid ping duration time
     this->GainControl::setInvalidPingDuration( INVALID_PING_DURATION );
 
+    //Set the default nudge gain value
+    this->GainControl::setNudgeGainValue( NUDGE_VALUE );
+
+    //Set up the validMean and validVariance
+    this->GainControl::setValidMean( DEFAULT_VALIDMEAN );
+    this->GainControl::setValidVariance( DEFAULT_VALIDVARIANCE );
+
     //Flag that indicates if we have purposely set the gain to 0dB
     //to kill the signal.
     gainFlooredFlag = false;
@@ -189,15 +196,20 @@ void GainControl::runtime( void ){
             serialPingRecievedTimer = millis();
             if( this->GainControl::checkCalibration() ){
                 Serial.println( "$ping cal=1 gain=" + String(optimalGain) +
-                " peakLevel=" + String(peakLevel) + " error=" + String(error) +
-                " avgPkLv=" + String(averagePeakLevel) + " samples=" + String(averagePeakLevelCounter));
+                " peakLevel=" + String(peakLevel) +
+                " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance, 5) +
+                " samples=" + String(averagePeakLevelCounter));
             } else {
                 Serial.println( "$ping cal=0 gain=" + String(optimalGain) +
-                " peakLevel=" + String(peakLevel) + " error=" + String(error) +
-                " avgPkLv=" + String(averagePeakLevel) + " samples=" + String(averagePeakLevelCounter));
+                " peakLevel=" + String(peakLevel) +
+                " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance, 5) +
+                " samples=" + String(averagePeakLevelCounter));
             }
             averagePeakLevelCounter = 0;
             averagePeakLevel = 0;
+
+            averagePeakLevelSquaredCounter = 0;
+            averagePeakLevelSquared = 0;
 
             Serial.flush();
         }
@@ -215,6 +227,8 @@ void GainControl::gainController( void ){
     //Sum the peakLevel so we can average it
     averagePeakLevel += peakLevel;
     averagePeakLevelCounter++;
+    averagePeakLevelSquared += (peakLevel * peakLevel);
+    averagePeakLevelSquaredCounter++;
 
     //get the integral error
     this->GainControl::getIntegralError();
@@ -257,6 +271,10 @@ void GainControl::saturateGain( void ){
 
 }
 
+void GainControl::calculateVariance( void ){
+    variance = averagePeakLevelSquared - (averagePeakLevel * averagePeakLevel);
+}
+
 //Set desired peak to peak output in mV
 void GainControl::setDesiredPeak2Peak( float input ){
 
@@ -279,7 +297,19 @@ bool GainControl::checkCalibration( void ){
         averagePeakLevel = peakLevel;
     }
 
-    if ( (averagePeakLevel > (desiredPeak-0.1)) && (averagePeakLevel < (desiredPeak + 0.1)) && (error < 0.1) && (error > -0.1)){
+    if (averagePeakLevelSquaredCounter != 0){
+        averagePeakLevelSquared = averagePeakLevelSquared / averagePeakLevelSquaredCounter;
+    } else {
+        averagePeakLevelSquared = peakLevel * peakLevel;
+    }
+
+    this->GainControl::calculateVariance();
+
+    if ( (averagePeakLevel > (desiredPeak-validMean))
+        && (averagePeakLevel < (desiredPeak + validMean))
+        && (variance < validVariance)
+        && (variance > (-1*validVariance)) ) {
+
         return true;
     } else {
         return false;
@@ -329,8 +359,20 @@ void GainControl::setGain( float gain ){
     setAmplifierGain( gain );
 }
 
+void GainControl::setValidMean( float _validMean ){
+    validMean = _validMean;
+}
+
+void GainControl::setValidVariance( float _variance ){
+    variance = _variance;
+}
+
 float GainControl::getDesiredPeak( void ){
     return desiredPeak;
+}
+
+bool GainControl::getHoldGain( void ){
+    return holdGainFlag;
 }
 
 float GainControl::getCurrentOptimalGain( void ){
@@ -355,4 +397,12 @@ float GainControl::getProportionalGain( void ){
 
 float GainControl::getIntegralGain( void ) {
     return iGain;
+}
+
+float GainControl::getValidMean( void ){
+    return validMean;
+}
+
+float GainControl::getValidVariance( void ){
+    return validVariance;
 }
