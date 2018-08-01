@@ -11,7 +11,7 @@
 #include "Filter.h"
 
 #define NUMBER_COMMANDS 2
-#define NUMBER_VARIABLES 17
+#define NUMBER_VARIABLES 19
 
 class CommInterface {
 
@@ -75,7 +75,8 @@ class CommInterface {
             String( F("iGain")), String( F("iSaturation")), String( F("floorGainDur")), String( F("nudgeGainDur")),
             String( F("invalidPingDur")), String( F("nudgeGainValue")), String( F("validPingStart")),
             String( F("validPingEnd")), String( F("gain") ) , String( F("peakLevel") ), String( F("pingStatus")),
-            String( F("centerFreq") ), String( F("debug") ), String( F("adcAveraging"))
+            String( F("centerFreq") ), String( F("debug") ), String( F("adcAveraging")),
+            String( F("validMean")), String( F("validVariance"))
         };
 
         //bool testLED;
