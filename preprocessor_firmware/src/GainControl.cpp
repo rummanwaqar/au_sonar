@@ -196,12 +196,12 @@ void GainControl::runtime( void ){
             serialPingRecievedTimer = millis();
             if( this->GainControl::checkCalibration() ){
                 Serial.println( "$ping cal=1 gain=" + String(optimalGain) +
-                " peakLevel=" + String(peakLevel) + " error=" + String(error) +
+                " peakLevel=" + String(peakLevel) +
                 " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance, 5) +
                 " samples=" + String(averagePeakLevelCounter));
             } else {
                 Serial.println( "$ping cal=0 gain=" + String(optimalGain) +
-                " peakLevel=" + String(peakLevel) + " error=" + String(error) +
+                " peakLevel=" + String(peakLevel) +
                 " avgPkLv=" + String(averagePeakLevel) + " variance=" + String(variance, 5) +
                 " samples=" + String(averagePeakLevelCounter));
             }
