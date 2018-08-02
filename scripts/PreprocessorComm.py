@@ -128,7 +128,7 @@ class PreprocessorComm(threading.Thread):
 
     @staticmethod
     def __parse_ping(data):
-        ping_data = {}
+        ping_data = {'timestamp': time.time()}
         for pair in data:
             key_val_pair = pair.split('=')
             if len(key_val_pair) == 2:

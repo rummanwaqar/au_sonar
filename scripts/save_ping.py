@@ -6,7 +6,7 @@ import os
 import Queue
 import argparse
 
-from AsyncReadSocket import AsyncReadSocket
+from AsyncReadSocket import PingReader
 
 
 class ServiceExit(Exception):
@@ -43,7 +43,7 @@ def main():
 
     # start the job threads
     try:
-        readSocketThread = AsyncReadSocket(data_queue)
+        readSocketThread = PingReader(data_queue)
         readSocketThread.start()
         start = time.time()
 
