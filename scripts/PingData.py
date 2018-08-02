@@ -11,6 +11,7 @@ class PingData(object):
         self.hydrophoneB = hydrophoneB
         self.refB = refB
         self.angle = angle
+        self.ping_info = None
 
     @classmethod
     def from_raw_data(cls, data):
@@ -57,6 +58,11 @@ class PingData(object):
                 hydrophoneB.append(float(row[2]))
                 refB.append(float(row[3]))
         return cls(timestamp=timestamp, hydrophoneA=hydrophoneA, hydrophoneB=hydrophoneB, refA=refA, refB=refB, angle=angle)
+
+    def update_ping_info(self, data):
+        if data['timestamp'] == self.timestamp:
+            pass
+        pass
 
     def to_csv(self, path):
         filename = os.path.join(path, str(self.timestamp))
