@@ -5,8 +5,6 @@ import os
 import Queue
 import argparse
 import time
-import logging
-
 from PreprocessorComm import PreprocessorComm
 
 
@@ -36,25 +34,13 @@ def main():
 
     ping_queue = Queue.Queue()
 
-    # logging
-    logging_dir = os.path.expanduser('~/.sonar/')
-    if not os.path.exists(logging_dir):
-        os.makedirs(logging_dir)
-        print(logging_dir)
-    logging.basicConfig(filename=os.path.join(logging_dir, 'log.txt'),
-                        level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
-    logger.info('Started')
-
     try:
         preprocessor = PreprocessorComm(port, '../cfg/preprocessor.cfg', ping_queue)
         preprocessor.start()
         if preprocessor.write_current_params():
             print('All params loaded')
-            logger.info('All params loaded')
         else:
             print('Param loading failed')
-            logger.error('Param loading failed')
 
         while True:
             try:
@@ -76,9 +62,7 @@ def main():
     except ServiceExit:
         preprocessor.shutdown_flag.set()
         preprocessor.join()
-        logger.info('Finished')
     except RuntimeError as e:
-        logging.error(e)
         exit(1)
 
 if __name__ == '__main__':
