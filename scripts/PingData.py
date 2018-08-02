@@ -2,6 +2,7 @@ from __future__ import division
 import time
 import csv
 import os
+import Queue
 
 class PingData(object):
     def __init__(self, timestamp=None, hydrophoneA=[], refA=[], hydrophoneB=[], refB=[], angle=None):
@@ -59,10 +60,28 @@ class PingData(object):
                 refB.append(float(row[3]))
         return cls(timestamp=timestamp, hydrophoneA=hydrophoneA, hydrophoneB=hydrophoneB, refA=refA, refB=refB, angle=angle)
 
-    def update_ping_info(self, data):
-        if data['timestamp'] == self.timestamp:
-            pass
-        pass
+    def update_ping_info(self, info_queue, timeout=0.5):
+        current_timestamp = timeout
+
+        while (timeout == 0) or (timeout != 0 and current_timestamp > 0):
+            try:
+                ping_info = info_queue.get(timeout=0.1)
+            except Queue.Empty:
+                pass
+            else:
+                if PingData.isclose(ping_info['timestamp'], self.timestamp, abs_tol=0.5):
+                    self.ping_info = ping_info
+                    info_queue.task_done()
+                    if self.ping_info['cal']:
+                        return True
+                    else:
+                        return False
+                info_queue.task_done()
+            current_timestamp = current_timestamp - 0.1
+        return False
+
+    def isCalibrated(self):
+        return self.ping_info is not None and self.ping_info['cal']
 
     def to_csv(self, path):
         filename = os.path.join(path, str(self.timestamp))
@@ -100,6 +119,11 @@ class PingData(object):
 
     def __len__(self):
         return len(self.hydrophoneA)
+
+    @staticmethod
+    # returns true if a and b are close to each other
+    def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
     @staticmethod
     def __to_voltage(data):
