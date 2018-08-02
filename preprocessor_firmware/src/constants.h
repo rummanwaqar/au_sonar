@@ -6,7 +6,7 @@
 #define DESIRED_PEAK 1.0 //The intial target output in Vpp.
 #define DC_BIAS 0.97  //Peak Detector reading without any input to the sonar board
 //Initial gains for the controller
-#define P_GAIN 0.1   //The error at the moment of getting the peak value.
+#define P_GAIN 0.2   //The error at the moment of getting the peak value.
 #define I_GAIN 0.01  //Sums the error over time
 #define MAX_I_ERROR 0.5 //Saturates the integral error.
 //Initial durations in milliseconds
@@ -24,7 +24,7 @@
 #define PINGVALIDSTART 200   //offset for the start of the ping (microseconds)
 #define PINGVALIDEND 1500    //offset for the end of the ping (microseconds)
 //A valid ping is 2*PEAK_NOISE
-#define PEAK_NOISE 0.4
+#define PEAK_NOISE 0.6
 //Power rail noise is 40mV
 
 //Constants for the filter

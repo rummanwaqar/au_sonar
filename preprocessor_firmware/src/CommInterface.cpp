@@ -204,11 +204,13 @@ void CommInterface::getArgument(){
     if (argument1Length > 32){
 
         //if the variable was "iSaturation", then there should have been a ' '. Invalid if so.
+        /*
         if( variableIndex == 4){
             messageReceived = false;
             message = String("");
             return;
         }
+        */
 
         argument1Length = 0;
         //Go through the argument and get the length of it
@@ -233,7 +235,9 @@ void CommInterface::getArgument(){
         argument1String = String(message);
 
     //This else is for the case of two arguments -> a space was found after argument1
-    } else {
+    }
+    /*
+    else {
 
         //Currently only "iSaturation" requires two arguments
         if ( variableIndex == 4 ){
@@ -267,7 +271,9 @@ void CommInterface::getArgument(){
             message = String("");
             return;
         }
+
     }
+    */
 }
 
 //This method is called when a second argument is to be gathered from message
@@ -335,7 +341,8 @@ void CommInterface::setValue( void ){
             gainControl->setIntegralGain(output_float );
             break;
         case 4:
-            gainControl->setIntegralSaturation(output_float, output2_float);
+            //gainControl->setIntegralSaturation(output_float, output2_float);
+            gainControl->setIntegralSaturation(output_float);
             break;
         case 5:
             gainControl->setFloorGainDuration(output_int);
@@ -397,6 +404,9 @@ void CommInterface::sendLocalVariable( void ){
             break;
         case 3:
             output_float = gainControl->getIntegralGain();
+            break;
+        case 4:
+            output_float = gainControl->getISaturation();
             break;
         case 11:
             output_float = gainControl->getCurrentOptimalGain();

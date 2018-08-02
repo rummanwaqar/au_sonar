@@ -35,6 +35,7 @@ class GainControl : public PeakDetector{
         void setIntegralGain( float gain );
 
         //Set the limits of the integral
+        void setIntegralSaturation( float absBound );
         void setIntegralSaturation( float lowerBound, float upperBound );
 
         //Set the time the gain should be floored after reading the ping (ms)
@@ -69,6 +70,9 @@ class GainControl : public PeakDetector{
 
         //Get the current "optimized" gain in dB as calculated by the Controller
         float getCurrentOptimalGain( void );
+
+        //Get the value of the iSaturation, returns iErrorMax
+        float getISaturation( void );
 
         //Get the current "Peak Level" in Volts as calculated by the peak detector
         float getCurrentPeakLevel( void );

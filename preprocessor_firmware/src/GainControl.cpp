@@ -329,6 +329,11 @@ void GainControl::setIntegralGain( float gain ){
     iGain = gain;
 }
 
+void GainControl::setIntegralSaturation(float absBound){
+    iErrorMax = absBound;
+    iErrorMin = -1*absBound;
+}
+
 void GainControl::setIntegralSaturation( float lowerBound, float upperBound){
     iErrorMax = upperBound;
     iErrorMin = lowerBound;
@@ -373,6 +378,10 @@ float GainControl::getDesiredPeak( void ){
 
 bool GainControl::getHoldGain( void ){
     return holdGainFlag;
+}
+
+float GainControl::getISaturation( void ){
+    return iErrorMax;
 }
 
 float GainControl::getCurrentOptimalGain( void ){
