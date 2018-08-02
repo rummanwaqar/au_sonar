@@ -80,6 +80,47 @@ sudo pip install pyzmq
 sudo pip install -U platformio
 ```
 
+### Install ROS-Base
+```
+sudo apt-get install dirmngr
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu stretch main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+sudo apt-get update
+
+# Install ROS from source:
+sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential
+
+sudo rosdep init
+rosdep update
+
+mkdir ~/ros_source_build_ws
+cd ~/ros_source_build_ws
+
+rosinstall_generator ros_comm --rosdistro kinetic --deps --wet-only --exclude roslisp --tar > kinetic-ros_comm-wet.rosinstall
+wstool init -j8 src kinetic-ros_comm-wet.rosinstall
+
+rosdep install --from-paths src --ignore-src --rosdistro kinetic -y -r --os=debian:stretch
+```
+Plug in a USB flash drive that can be formatted and used as swap space for the ROS build.
+
+It should be 4GB or greater.
+
+Get the device identifier with: `sudo blkid`
+
+Replace `XXX` with the device identifier:
+```
+sudo mkswap /dev/XXX
+sudo swapon /dev/XXX
+```
+
+Build ROS (may take a couple hours):
+```
+sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/kinetic
+```
+
+Finally, add this to the end of `~/.bashrc`:
+`source /opt/ros/kinetic/setup.sh`
+
 ### Downloading and building this repo
 ```
 git clone https://github.com/arvpUofA/au_sonar.git
