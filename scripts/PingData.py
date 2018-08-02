@@ -19,7 +19,8 @@ class PingData(object):
         if len(data) % 4 != 0:
             raise RuntimeWarning('invalid ping data. wrong data length')
 
-        timestamp = int(round(time.time()))
+        #timestamp = int(round(time.time()))
+        timestamp = time.time()
         hydrophoneA = []
         hydrophoneB = []
         refA = []
@@ -60,7 +61,8 @@ class PingData(object):
                 refB.append(float(row[3]))
         return cls(timestamp=timestamp, hydrophoneA=hydrophoneA, hydrophoneB=hydrophoneB, refA=refA, refB=refB, angle=angle)
 
-    def update_ping_info(self, info_queue, timeout=0.5):
+    # the latency is generally 100ms
+    def update_ping_info(self, info_queue, timeout=0.2):
         current_timestamp = timeout
 
         while (timeout == 0) or (timeout != 0 and current_timestamp > 0):
@@ -69,8 +71,8 @@ class PingData(object):
             except Queue.Empty:
                 pass
             else:
-                print('Got info with latency {}'.format(ping_info[timeout] - self.timestamp))
-                if PingData.isclose(ping_info['timestamp'], self.timestamp, abs_tol=0.5):
+                if abs(ping_info['timestamp'] - self.timestamp) < 0.2:
+                    print('Got ping info with latency {}'.format(ping_info['timestamp'] - self.timestamp))
                     self.ping_info = ping_info
                     info_queue.task_done()
                     if self.ping_info['cal']:
