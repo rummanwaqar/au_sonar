@@ -6,7 +6,7 @@ import Queue
 from PingData import PingData
 
 
-class AsyncReadSocket(threading.Thread):
+class PingReader(threading.Thread):
     def __init__(self, queue, address="10.42.43.125", port="9999"):
         # initialize ZMQ socket
         context = zmq.Context()
@@ -23,7 +23,7 @@ class AsyncReadSocket(threading.Thread):
         while not self.shutdown_flag.is_set():
             # this is a blocking call. Waits for data to be published
             raw_message = self.socket.recv()
-            # convert to PingData and pass to queue
+            # convert to PingData and pass to raw_queue
             message = msgpack.unpackb(raw_message)
             try:
                 ping = PingData.from_raw_data(message)

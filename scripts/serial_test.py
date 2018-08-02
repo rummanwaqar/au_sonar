@@ -7,7 +7,7 @@ import argparse
 import time
 import logging
 
-from AsyncReadSerial import AsyncReadSerial
+from PreprocessorComm import PreprocessorComm
 
 
 class ServiceExit(Exception):
@@ -34,7 +34,7 @@ def main():
     args = parser.parse_args()
     port = args.port
 
-    data_queue = Queue.Queue()
+    ping_queue = Queue.Queue()
 
     # logging
     logging_dir = os.path.expanduser('~/.sonar/')
@@ -47,22 +47,39 @@ def main():
     logger.info('Started')
 
     try:
-        readSerialThread = AsyncReadSerial(port, data_queue)
-        readSerialThread.start()
+        preprocessor = PreprocessorComm(port, '../cfg/preprocessor.cfg', ping_queue)
+        preprocessor.start()
+        if preprocessor.write_current_params():
+            print('All params loaded')
+            logger.info('All params loaded')
+        else:
+            print('Param loading failed')
+            logger.error('Param loading failed')
 
         while True:
             try:
-                data = data_queue.get(timeout=1)
+                data = ping_queue.get(timeout=1)
             except Queue.Empty:
                 pass
             else:
-                logging.debug(data)
+                #logging.debug(data)
+
                 print(data)
-                data_queue.task_done()
+                ping_queue.task_done()
+            #print(readSerialThread.read_param('iGain', timeout=10))
+            #print(readSerialThread.sonar_params)
+            # data = readSerialThread.get_line()
+            # if data is not None:
+                # print(data)
+                # readSerialThread.read_complete()
+            pass
     except ServiceExit:
-        readSerialThread.shutdown_flag.set()
-        readSerialThread.join()
+        preprocessor.shutdown_flag.set()
+        preprocessor.join()
         logger.info('Finished')
+    except RuntimeError as e:
+        logging.error(e)
+        exit(1)
 
 if __name__ == '__main__':
     main()
