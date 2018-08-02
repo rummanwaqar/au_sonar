@@ -69,6 +69,7 @@ class PingData(object):
             except Queue.Empty:
                 pass
             else:
+                print('Got info with latency {}'.format(ping_info[timeout] - self.timestamp))
                 if PingData.isclose(ping_info['timestamp'], self.timestamp, abs_tol=0.5):
                     self.ping_info = ping_info
                     info_queue.task_done()
@@ -79,9 +80,6 @@ class PingData(object):
                 info_queue.task_done()
             current_timestamp = current_timestamp - 0.1
         return False
-
-    def isCalibrated(self):
-        return self.ping_info is not None and self.ping_info['cal']
 
     def to_csv(self, path):
         filename = os.path.join(path, str(self.timestamp))
