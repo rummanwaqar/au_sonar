@@ -23,7 +23,7 @@ class AsyncReadSocket(threading.Thread):
         while not self.shutdown_flag.is_set():
             # this is a blocking call. Waits for data to be published
             raw_message = self.socket.recv()
-            # convert to PingData and pass to queue
+            # convert to PingData and pass to raw_queue
             message = msgpack.unpackb(raw_message)
             try:
                 ping = PingData.from_raw_data(message)
