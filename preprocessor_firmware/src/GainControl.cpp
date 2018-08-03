@@ -310,7 +310,12 @@ bool GainControl::checkCalibration( void ){
         && (variance < validVariance)
         && (variance > (-1*validVariance)) ) {
 
-        return true;
+            if ( (variance > 0.0001) || (variance < -0.0001) ){
+                return true;
+            } else {
+                return false;
+            }
+
     } else {
         return false;
     }
