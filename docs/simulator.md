@@ -12,6 +12,7 @@ Sonar simulator is a 2D simulator that returns relative heading to the acoustic 
 * `pose_topic`: topic to get auri simulated pose to calculate heading
 
 #### Action:
+Output heading is in degrees (or NaN). The output heading is the angle to turn `heading = pinger_angle - current_angle`. 
 ```
 Goal: empty
 Feedback: (string) calibration/calculating
