@@ -21,8 +21,9 @@ Result: (float32) heading
 #### Switching Pingers
 Pingers can be switched by publishing to `/sonar/enable`.
 
-* PingerA: publish True
-* PingerB: publish False
+* Disable: Set value to 0
+* PingerA: Set value to 1
+* PingerB: Set value to 2
 
 
 

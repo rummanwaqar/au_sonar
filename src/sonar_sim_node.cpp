@@ -3,11 +3,13 @@
  */
 
 #include <cmath>
+#include <limits>
 
 #include <ros/ros.h>
 #include <angles/angles.h>
 #include <actionlib/server/simple_action_server.h>
 
+#include <std_msgs/Int32.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/Pose.h>
 #include <au_sonar/SonarAction.h>
@@ -19,7 +21,9 @@ class SonarAction {
       : as_(nh_, name, false),
         action_name_(name),
         private_nh_("~"),
-        pingerA_not_B_(true) {
+        pingerA_enable_(true),
+        pingerB_enable_(false)
+  {
     // load params
     private_nh_.getParam("a_x", pinger_position_[0][0]);
     private_nh_.getParam("a_y", pinger_position_[0][1]);
@@ -88,12 +92,15 @@ class SonarAction {
   void poseCB(const geometry_msgs::Pose::ConstPtr& msg) {
     // get angle between two points in 2d
     double dx, dy;
-    if (pingerA_not_B_) {
+    if (pingerA_enable_ && !pingerB_enable_) {
       dx = pinger_position_[0][0] - msg->position.x;
       dy = pinger_position_[0][1] - msg->position.y;
-    } else {
+    } else if (pingerB_enable_ && !pingerA_enable_) {
       dx = pinger_position_[1][0] - msg->position.x;
       dy = pinger_position_[1][1] - msg->position.y;
+    } else {
+      heading_ = std::numeric_limits<double>::quiet_NaN();
+      return;
     }
 
     double pinger_angle = atan2(dy, dx);
@@ -110,13 +117,17 @@ class SonarAction {
     ROS_DEBUG("angle: %.3f", heading_);
   }
 
-  void enableCB(const std_msgs::Bool::ConstPtr& msg) {
-    if (msg->data) {  // PingerA active
-      pingerA_not_B_ = true;
+  void enableCB(const std_msgs::Int32::ConstPtr& msg) {
+    pingerA_enable_ = false;
+    pingerB_enable_ = false;
+    if (msg->data == 1) {  // PingerA active
+      pingerA_enable_ = true;
       ROS_INFO("Sonar: Pinger A active");
-    } else {  // PingerB active
-      pingerA_not_B_ = false;
+    } else if (msg->data == 2) {  // PingerB active
+      pingerB_enable_ = true;
       ROS_INFO("Sonar: Pinger B active");
+    } else {
+      ROS_INFO("Sonar: pingers inactive");
     }
   }
 
@@ -133,6 +144,8 @@ class SonarAction {
   float heading_;
   double pinger_position_[2][2];
   double processing_time_;
+  bool pingerA_enable_;
+  bool pingerB_enable_;
   bool pingerA_not_B_;  // if true pinger A is enabled otherwise pinger B
 };
 
