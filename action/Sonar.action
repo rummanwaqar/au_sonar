@@ -1,0 +1,7 @@
+#goal
+---
+#result
+float32 heading # returns heading relative to current position
+---
+#feedback
+string status   # status of sonar message

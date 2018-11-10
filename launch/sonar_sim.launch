@@ -1,0 +1,21 @@
+<launch>
+    <arg name="a_x" default="9"/>
+    <arg name="a_y" default="7.45"/>
+    <arg name="b_x" default="14" />
+    <arg name="b_y" default="10" />
+
+    <node
+        pkg="au_sonar"
+        type="sonar_sim"
+        name="sonar"
+        output="screen"
+        respawn="true"
+    >
+        <param name="a_x" type="double" value="$(arg a_x)" />
+        <param name="a_y" type="double" value="$(arg a_y)" />
+        <param name="b_x" type="double" value="$(arg b_x)" />
+        <param name="b_y" type="double" value="$(arg b_y)" />
+        <param name="processing_time" type="double" value="20000" />
+        <param name="pose_topic" type="string" value="/auri/pose" />
+    </node>
+</launch>
