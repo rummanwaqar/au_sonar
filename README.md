@@ -17,7 +17,7 @@ Compile with `catkin_make`
 
 ## Running the code
 
-#### beaglebone daq
+#### Beaglebone Data Acqusition Server
 Run `beaglebone/run.sh` 
 
 #### ROS node
