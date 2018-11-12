@@ -17,10 +17,10 @@ Compile with `catkin_make`
 
 ## Running the code
 
-#### On beaglebone
+#### beaglebone daq
 Run `beaglebone/run.sh` 
 
-#### On ROS machine
+#### ROS node
 
 
 ## Documentation
