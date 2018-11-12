@@ -107,12 +107,12 @@ target_link_libraries(sonar_sim ${catkin_LIBRARIES})
 if(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
     message(STATUS "Building Beaglebone specific targets")
 
-#    include(cmake/FindZeroMQ.cmake)
-#    include(cmake/FindMsgPack.cmake)
-#
-#    # pru_read executable
-#    add_executable(pru_read src/pru_read.cpp)
-#    target_link_libraries(pru_read prussdrv ${ZeroMQ_LIBRARIES} ${MSGPACK_LIBRARIES})
+    include(cmake/FindZeroMQ.cmake)
+    include(cmake/FindMsgPack.cmake)
+
+    # pru_read executable
+    add_executable(pru_read src/pru_read.cpp)
+    target_link_libraries(pru_read prussdrv ${ZeroMQ_LIBRARIES} ${MSGPACK_LIBRARIES})
 
     # build PRU firmware
     set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
