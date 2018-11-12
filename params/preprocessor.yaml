@@ -1,0 +1,31 @@
+# target pinger frequency (kHz)
+centerFreq: 25
+# target peak to peak value for gain controller
+desiredPeak: 1.0
+# hold gain
+holdGain: 0
+# default gain
+gain: 40
+# PID gains
+pGain: 0.1
+iGain: 0.01
+iSaturation: 0.1
+# duration(ms) to set gain to 0dB after detected ping
+floorGainDur: 1700
+# duration(ms) after consecutive pings to nudge the gain up a bit
+nudgeGainDur: 500
+# duration(ms) after consecutive invalid pings to print debug info
+invalidPingDur: 5000
+# gain nudge amount
+nudgeGainValue: 0.2
+# duration(us) at start of ping to not feed into gain controller
+validPingStart: 200
+# duration(us) duration of ping fed into gain controller
+validPingEnd: 1500
+# adc averaging samples
+adcAveraging: 16
+# mean and variance for calibration flag
+validVariance: 0.05
+validMean: 0.25
+# debug flag
+debug: 0

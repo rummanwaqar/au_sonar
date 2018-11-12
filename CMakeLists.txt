@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
     genmsg
     actionlib_msgs
     std_msgs
+    geometry_msgs
     actionlib
     angles
 )
@@ -31,10 +32,16 @@ add_action_files(
     Sonar.action
 )
 
+add_service_files(
+    FILES
+    Triangulate.srv
+)
+
 generate_messages(
     DEPENDENCIES
     actionlib_msgs
     std_msgs
+    geometry_msgs
 )
 
 ###################################
