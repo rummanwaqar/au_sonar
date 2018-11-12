@@ -17,11 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
     angles
 )
 
-# get system information
-cmake_host_system_information(RESULT SYSTEM_HOSTNAME QUERY HOSTNAME)
-message(STATUS "HOSTNAME: ${SYSTEM_HOSTNAME}")
-set(BBB_HOSTNAME "beaglebone")
-
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -30,8 +25,6 @@ set(BBB_HOSTNAME "beaglebone")
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
-
-
 add_action_files(
     DIRECTORY action
     FILES
@@ -99,36 +92,3 @@ include_directories(
 add_executable(sonar_sim src/sonar_sim_node.cpp)
 add_dependencies(sonar_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sonar_sim ${catkin_LIBRARIES})
-
-###############################
-# Beaglebone specific targets #
-###############################
-
-if(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
-    message(STATUS "Building Beaglebone specific targets")
-
-    include(cmake/FindZeroMQ.cmake)
-    include(cmake/FindMsgPack.cmake)
-
-    # pru_read executable
-    add_executable(pru_read src/pru_read.cpp)
-    target_link_libraries(pru_read prussdrv ${ZeroMQ_LIBRARIES} ${MSGPACK_LIBRARIES})
-
-    # build PRU firmware
-    set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
-    set(PRU_FIRMWARE_OUTPUTS
-            "${PRU_WORKING_DIRECTORY}/pru0-clock.bin"
-            "${PRU_WORKING_DIRECTORY}/pru1-read-data.bin"
-            )
-    add_custom_command(
-            OUTPUT ${PRU_FIRMWARE_OUTPUTS}
-            COMMAND make all
-            WORKING_DIRECTORY "${PRU_WORKING_DIRECTORY}"
-            DEPENDS "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
-            COMMENT "Building PRU firmware"
-            VERBATIM
-    )
-    add_custom_target(pru_firmware ALL DEPENDS ${PRU_FIRMWARE_OUTPUTS})
-else()
-    message(WARNING "Not building Beaglebone specific targets")
-endif(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
