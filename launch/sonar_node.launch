@@ -1,0 +1,28 @@
+<launch>
+
+    <arg name="freq" default="27.0" />
+    <arg name="storage_path" default="" />
+
+    <node
+        pkg="au_sonar"
+        type="sonar_node.py"
+        name="sonar_action_server"
+        output="screen"
+        respawn="true">
+
+        <param name="freq" value="$(arg freq)" />
+        <param name="storage_path" value="$(arg storage_path)" />
+        <param name="port" value="/dev/arvp/sonar" />
+        <param name="noOfPoints" value="10" />
+        <param name="noOfIterations" value="2" />
+
+    </node>
+
+    <node
+        pkg="au_sonar"
+        type="sonar_triangulate.py"
+        name="sonar_triangulate"
+        output="screen"
+        respawn="true"
+    />
+</launch>

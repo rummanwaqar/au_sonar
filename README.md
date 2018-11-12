@@ -21,7 +21,7 @@ Compile with `catkin_make`
 Run `beaglebone/run.sh` 
 
 #### ROS node
-
+Run `roslaunch au_sonar sonar_node.launch freq:=<target freq in Khz>`
 
 ## Documentation
 * [Sonar Simulator](docs/simulator.md)
