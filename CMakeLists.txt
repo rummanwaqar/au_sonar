@@ -17,9 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
     angles
 )
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
+# get system information
+cmake_host_system_information(RESULT SYSTEM_HOSTNAME QUERY HOSTNAME)
+message(STATUS "HOSTNAME: ${SYSTEM_HOSTNAME}")
+set(BBB_HOSTNAME "beaglebone")
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -43,35 +44,9 @@ generate_messages(
     std_msgs
 )
 
-################################################
-## Declare ROS dynamic reconfigure parameters ##
-################################################
-
-## To declare and build dynamic reconfigure parameters within this
-## package, follow these steps:
-## * In the file package.xml:
-##   * add a build_depend and a exec_depend tag for "dynamic_reconfigure"
-## * In this file (CMakeLists.txt):
-##   * add "dynamic_reconfigure" to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * uncomment the "generate_dynamic_reconfigure_options" section below
-##     and list every .cfg file to be processed
-
-## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
-
 ###################################
 ## catkin specific configuration ##
 ###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if your package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES au_sonar
@@ -86,7 +61,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -124,3 +99,36 @@ include_directories(
 add_executable(sonar_sim src/sonar_sim_node.cpp)
 add_dependencies(sonar_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sonar_sim ${catkin_LIBRARIES})
+
+###############################
+# Beaglebone specific targets #
+###############################
+
+if(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
+    message(STATUS "Building Beaglebone specific targets")
+
+#    include(cmake/FindZeroMQ.cmake)
+#    include(cmake/FindMsgPack.cmake)
+#
+#    # pru_read executable
+#    add_executable(pru_read src/pru_read.cpp)
+#    target_link_libraries(pru_read prussdrv ${ZeroMQ_LIBRARIES} ${MSGPACK_LIBRARIES})
+
+    # build PRU firmware
+    set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
+    set(PRU_FIRMWARE_OUTPUTS
+            "${PRU_WORKING_DIRECTORY}/pru0-clock.bin"
+            "${PRU_WORKING_DIRECTORY}/pru1-read-data.bin"
+            )
+    add_custom_command(
+            OUTPUT ${PRU_FIRMWARE_OUTPUTS}
+            COMMAND make all
+            WORKING_DIRECTORY "${PRU_WORKING_DIRECTORY}"
+            DEPENDS "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
+            COMMENT "Building PRU firmware"
+            VERBATIM
+    )
+    add_custom_target(pru_firmware ALL DEPENDS ${PRU_FIRMWARE_OUTPUTS})
+else()
+    message(WARNING "Not building Beaglebone specific targets")
+endif(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
