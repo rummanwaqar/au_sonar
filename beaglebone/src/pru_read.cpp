@@ -8,8 +8,8 @@
  * The format of data output is [hydrophoneA, refA, hydrophoneB, refB, ... ] and
  * the pattern repeats for n/4 times.
  *
- * The data is transmitted as 10-bit unsigned integers and should be converted to
- * voltage appropriately.
+ * The data is transmitted as 10-bit unsigned integers and should be converted
+ * to voltage appropriately.
  *
  * Profiling (under 3% CPU)
  * 	Total processing of dataset = 10ms
@@ -18,20 +18,20 @@
  * 		Publishing data = 0.3ms
  */
 
-#include <cstdio>
-#include <unistd.h>
-#include <cstdlib>
 #include <inttypes.h>
 #include <signal.h>
+#include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
-#include <vector>
 #include <ctime>
+#include <vector>
 
-#include <prussdrv.h>
 #include <pruss_intc_mapping.h>
+#include <prussdrv.h>
 
-#include <zmq.hpp>
 #include <msgpack.hpp>
+#include <zmq.hpp>
 
 #include "shared_header.h"
 
@@ -40,127 +40,131 @@
 
 static int running = 1;
 
-void sig_handler(int sig) {
-	running = 0;
+void sig_handler(int sig) { running = 0; }
+
+long int unix_timestamp() {
+  time_t t = std::time(0);
+  long int now = static_cast<long int>(t);
+  return now;
 }
 
-long int unix_timestamp()
-{
-    time_t t = std::time(0);
-    long int now = static_cast<long int> (t);
-    return now;
-}
+int main(int argc, char **argv) {
+  // run as sudo (needed to access PRU systems)
+  if (geteuid() != 0) {
+    fprintf(stderr, "Must be root. Try again with sudo.\n");
+    return EXIT_FAILURE;
+  }
 
-int main(int argc, char** argv) {
-	// run as sudo (needed to access PRU systems)
-	if (geteuid() != 0) {
-		fprintf(stderr, "Must be root. Try again with sudo.\n");
-		return EXIT_FAILURE;
-	}
+  // check command line arguments for PRU firmware files
+  if (argc != 3) {
+    fprintf(stderr, "Usage: %s pru0_code.bin pru1_code.bin\n", argv[0]);
+    return EXIT_FAILURE;
+  }
 
-	// check command line arguments for PRU firmware files
-	if (argc != 3) {
-		fprintf(stderr, "Usage: %s pru0_code.bin pru1_code.bin\n", argv[0]);
-		return EXIT_FAILURE;
-	}
+  // check if files exist
+  if (access(argv[1], F_OK) == -1) {
+    fprintf(stderr,
+            "ERROR: %s does not exist. Specify the correct PRU0 binary\n",
+            argv[1]);
+    return EXIT_FAILURE;
+  }
+  if (access(argv[2], F_OK) == -1) {
+    fprintf(stderr,
+            "ERROR: %s does not exist. Specify the correct PRU1 binary\n",
+            argv[2]);
+    return EXIT_FAILURE;
+  }
 
-	// check if files exist
-	if( access(argv[1], F_OK) == -1 ) {
-		fprintf(stderr, "ERROR: %s does not exist. Specify the correct PRU0 binary\n", argv[1]);
-		return EXIT_FAILURE;
-	}
-	if( access(argv[2], F_OK) == -1 ) {
-		fprintf(stderr, "ERROR: %s does not exist. Specify the correct PRU1 binary\n", argv[2]);
-		return EXIT_FAILURE;
-	}
+  // install signal handler
+  if (SIG_ERR == signal(SIGINT, sig_handler)) {
+    perror("Warn: signal handler not installed %d\n");
+  }
 
+  // initialize PRU and allocate memory
+  prussdrv_init();
+  prussdrv_open(PRU_EVTOUT_1);
+  tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
+  prussdrv_pruintc_init(&pruss_intc_initdata);
 
-	// install signal handler
-	if(SIG_ERR == signal(SIGINT, sig_handler)) {
-		perror("Warn: signal handler not installed %d\n");
-	}
+  // get pointer into the shared PRU DRAM where PRU expects to share
+  // params with PRUs and host CPU
+  volatile pruparams_t *pparams = NULL;
+  prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void **)&pparams);
 
-	// initialize PRU and allocate memory
-	prussdrv_init();
-	prussdrv_open(PRU_EVTOUT_1);
-	tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
-	prussdrv_pruintc_init(&pruss_intc_initdata);
+  // pointer into the DDR RAM mapped by the uio_pruss kernel module. This
+  // is host memory shared by to the PRU over OCP
+  volatile uint32_t *shared_ddr = NULL;
+  prussdrv_map_extmem((void **)&shared_ddr);
+  unsigned int shared_ddr_len = prussdrv_extmem_size();
+  unsigned int physical_addr = prussdrv_get_phys_addr((void *)shared_ddr);
+  printf(
+      "%uKB of shared DDR available.\n Physical (PRU-side) address:%x\n "
+      "Virtual (linux-side) address: %p\n\n",
+      shared_ddr_len / 1024, physical_addr, shared_ddr);
 
-	// get pointer into the shared PRU DRAM where PRU expects to share
-	// params with PRUs and host CPU
-	volatile pruparams_t *pparams = NULL;
-	prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void**)&pparams);
+  // pass params to PRU
+  pparams->physical_addr = physical_addr;
+  pparams->ddr_len = shared_ddr_len;
 
-	// pointer into the DDR RAM mapped by the uio_pruss kernel module. This
-	// is host memory shared by to the PRU over OCP
-	volatile uint32_t *shared_ddr = NULL;
-	prussdrv_map_extmem((void**)&shared_ddr);
-	unsigned int shared_ddr_len = prussdrv_extmem_size();
-	unsigned int physical_addr = prussdrv_get_phys_addr((void*)shared_ddr);
-	printf("%uKB of shared DDR available.\n Physical (PRU-side) address:%x\n Virtual (linux-side) address: %p\n\n",
-			shared_ddr_len/1024, physical_addr, shared_ddr);
+  // load programs on to PRU units
+  prussdrv_exec_program(0, argv[1]);
+  prussdrv_exec_program(1, argv[2]);
 
-	// pass params to PRU
-	pparams->physical_addr = physical_addr;
-	pparams->ddr_len = shared_ddr_len;
+  // start zmq publisher
+  zmq::context_t context(1);
+  zmq::socket_t publisher(context, ZMQ_PUB);
+  publisher.bind(SERVER_ADDRESS);
 
-	// load programs on to PRU units
-	prussdrv_exec_program(0, argv[1]);
-	prussdrv_exec_program(1, argv[2]);
+  printf("Started ZMQ publisher at %s\n\n", SERVER_ADDRESS);
 
-	// start zmq publisher
-	zmq::context_t context(1);
-	zmq::socket_t publisher(context, ZMQ_PUB);
-	publisher.bind(SERVER_ADDRESS);
+  // main loop
+  while (running) {
+    // wait for ping interrupt from PRU
+    prussdrv_pru_wait_event(PRU_EVTOUT_1);
 
-	printf("Started ZMQ publisher at %s\n\n", SERVER_ADDRESS);
+    std::vector<uint16_t> ping_data;
 
-	// main loop
-	while(running) {
-		// wait for ping interrupt from PRU
-		prussdrv_pru_wait_event(PRU_EVTOUT_1);
+    // get read write pointers
+    volatile uint32_t *read_pointer = shared_ddr;
+    uint32_t *write_pointer_virtual =
+        static_cast<uint32_t *>(prussdrv_get_virt_addr(pparams->shared_ptr));
 
-		std::vector<uint16_t> ping_data;
+    while (read_pointer != write_pointer_virtual) {
+      // copy data to local memory
+      uint16_t data[4];
+      memcpy(data, (void *)read_pointer, 8);
 
-		// get read write pointers
-		volatile uint32_t *read_pointer = shared_ddr;
-		uint32_t *write_pointer_virtual = static_cast<uint32_t*>(prussdrv_get_virt_addr(pparams->shared_ptr));
+      // use only first 10 bits that contain actual data
+      data[2] &= 0x3ff;
+      data[3] &= 0x3ff;
 
-		while(read_pointer != write_pointer_virtual) {
-			// copy data to local memory
-			uint16_t data[4];
-			memcpy(data, (void*) read_pointer, 8);
+      // append to ping vector
+      ping_data.insert(ping_data.end(), std::begin(data), std::end(data));
 
-			// use only first 10 bits that contain actual data
-			data[2] &= 0x3ff;
-			data[3] &= 0x3ff;
+      // increment read pointer
+      read_pointer += (8 / sizeof(*read_pointer));
+    }
+    printf(" [%ld] Got a ping and published %d data points.\n",
+           unix_timestamp(), ping_data.size() / 4);
 
-			// append to ping vector
-			ping_data.insert(ping_data.end(), std::begin(data), std::end(data));
+    // serialize data
+    msgpack::sbuffer serialized_buffer;
+    msgpack::pack(serialized_buffer, ping_data);
 
-			// increment read pointer
-			read_pointer += (8 / sizeof(*read_pointer));
-		}
-		printf(" [%ld] Got a ping and published %d data points.\n", unix_timestamp(), ping_data.size()/4);
+    // publish ping data
+    zmq::message_t message(serialized_buffer.size());
+    memcpy(message.data(), serialized_buffer.data(), serialized_buffer.size());
+    publisher.send(message);
 
-		// serialize data
-		msgpack::sbuffer serialized_buffer;
-		msgpack::pack(serialized_buffer, ping_data);
+    // clear interrupt
+    prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+  }
 
-		// publish ping data
-	    zmq::message_t message(serialized_buffer.size());
-	    memcpy(message.data(), serialized_buffer.data(), serialized_buffer.size());
-	    publisher.send(message);
+  printf("Quitting program\n");
 
-		// clear interrupt
-		prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
-	}
+  prussdrv_pru_disable(0);
+  prussdrv_pru_disable(1);
+  prussdrv_exit();
 
-	printf("Quitting program\n");
-
-	prussdrv_pru_disable(0);
-	prussdrv_pru_disable(1);
-	prussdrv_exit();
-
-	return 0;
+  return 0;
 }

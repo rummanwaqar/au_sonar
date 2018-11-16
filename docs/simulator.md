@@ -2,6 +2,10 @@
 
 Sonar simulator is a 2D simulator that returns relative heading to the acoustic pinger.
 
+### Important notes
+* Make sure that pinger coods are in NED.
+* Make sure that state_aggregator is runnning. Simulator uses pose to simulate pinger data.
+
 ### Params:
 
 * `a_x`: pingerA x cood (m)
@@ -10,13 +14,14 @@ Sonar simulator is a 2D simulator that returns relative heading to the acoustic 
 * `b_y`: pingerB y cood (m)
 * `processing_time`: simulated sonar processing time (ms)
 * `pose_topic`: topic to get auri simulated pose to calculate heading
+* `noise`: +/- noise in output value of simulator (in degrees)
 
 #### Action:
-Output heading is in degrees (or NaN). The output heading is the angle to turn `heading = pinger_angle - current_angle`. 
+Output headings are in degrees (or NaN). 
 ```
 Goal: empty
 Feedback: (string) calibration/calculating
-Result: (float32) heading
+Result: (float32) rel_heading, abs_heading
 ```
 
 #### Switching Pingers

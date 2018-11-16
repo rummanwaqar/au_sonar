@@ -22,6 +22,8 @@ def triangulate_service(req):
         response.pinger_location.x = last_result[0]
         response.pinger_location.y = last_result[1]
     else:
+        print('Got point {},{} at heading {}'.format(
+            req.position.x, req.position.y, req.heading))
         data.append((req.position.x, req.position.y, req.heading))
         if len(data) == 1:
             print('Need another point before ready to triangulate')

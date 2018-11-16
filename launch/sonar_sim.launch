@@ -16,6 +16,7 @@
         <param name="b_x" type="double" value="$(arg b_x)" />
         <param name="b_y" type="double" value="$(arg b_y)" />
         <param name="processing_time" type="double" value="2000" />
-        <param name="pose_topic" type="string" value="/auri/pose" />
+        <param name="pose_topic" type="string" value="/dynamics/state" />
+        <param name="noise" type="double" value="1.0" /> <!-- +/- noise in degrees -->
     </node>
 </launch>

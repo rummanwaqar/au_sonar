@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     actionlib
     angles
+    au_core
 )
 
 catkin_python_setup()

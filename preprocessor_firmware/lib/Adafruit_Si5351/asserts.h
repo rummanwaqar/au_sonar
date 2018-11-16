@@ -29,8 +29,8 @@
     (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
     ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 /**************************************************************************/
 #ifndef _ASSERTS_H_
@@ -50,11 +50,11 @@
 */
 /**************************************************************************/
 #define ASSERT(condition, returnValue) \
-        do{\
-          if (!(condition)) {\
-            return (returnValue);\
-          }\
-        }while(0)
+  do {                                 \
+    if (!(condition)) {                \
+      return (returnValue);            \
+    }                                  \
+  } while (0)
 
 /**************************************************************************/
 /*!
@@ -73,12 +73,12 @@
     @endcode
 */
 /**************************************************************************/
-#define ASSERT_STATUS(sts) \
-        do{\
-          err_t status = (sts);\
-          if (ERROR_NONE != status) {\
-            return status;\
-          }\
-        } while(0)
+#define ASSERT_STATUS(sts)      \
+  do {                          \
+    err_t status = (sts);       \
+    if (ERROR_NONE != status) { \
+      return status;            \
+    }                           \
+  } while (0)
 
 #endif
