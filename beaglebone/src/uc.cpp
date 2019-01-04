@@ -6,7 +6,8 @@
 #include "serial.hpp"
 
 void callback(const uint8_t* buf, size_t len) {
-  std::cout << buf << std::endl;
+  std::cout.write((char*)buf, len);
+  std::cout << std::endl;
 }
 
 int main() {
@@ -17,6 +18,7 @@ int main() {
     return 2;
   }
 
+  // serial.write("$set gain 60.0\n");
   while(1);
   serial.close();
   return 0;
