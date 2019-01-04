@@ -1,4 +1,5 @@
 ## Wiring Guide
+
 | Input          	| BBB Pinout                                 	| Description                                    	|
 |----------------	|--------------------------------------------	|------------------------------------------------	|
 | Hydrophone A   	| ANALOG_INPUT 0                             	| Preprocessed hydrophone A input                	|
@@ -10,5 +11,9 @@
 | UART RX        	| BBB TX (P9_13)                             	| Teensy serial communication RX                 	|
 | DGND           	| BBB GND Pins (P8_1,2 + P9_1,2 + P9_43..46) 	| Digital ground                                 	|
 
-Yellow dots in the image below show the specified BBB pins.
-![Wiring guide](pinout_wiring.png)
+![PRU wiring](wiring_prudaq.png)
+![Preprocessor wiring](wiring_preprocessor.png)
+
+Notes: 
+* For serial UART, preprocessor RX needs to connect to Beaglebone TX, and vice versa.
+* The same ping available signal goes from preprocessor board to both ping available pins on PRUDAQ.

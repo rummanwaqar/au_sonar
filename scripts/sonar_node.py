@@ -78,7 +78,7 @@ class SonarAction(object):
                 print('output {}: heading {} with data {}'.format(
                     i, heading, self._pings))
             print('------------------------------------------------')
-            self._result.heading = heading
+            self._result.rel_heading = heading
 
             rospy.loginfo('%s: Succeeded' % self._action_name)
             self._as.set_succeeded(self._result)

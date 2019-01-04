@@ -25,6 +25,12 @@ typedef struct {
 
 #else
 
-.struct Params.u32 physical_addr.u32 ddr_len.u32 shared_ptr.ends
+// clang-format off
+.struct Params
+  .u32 physical_addr
+  .u32 ddr_len
+  .u32 shared_ptr
+.ends
+// clang-format on
 
 #endif
