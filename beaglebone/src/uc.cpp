@@ -1,7 +1,3 @@
-/*
- * Deps: boost
-
-*/
 #include <iostream>
 #include <string>
 #include <csignal>
@@ -12,18 +8,13 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
-#include "serial.hpp"
+#include "preprocessor.hpp"
 
-au_sonar::Serial* serial;
+au_sonar::Preprocessor* preprocessor;
 
-void callback(const uint8_t* buf, size_t len) {
-  std::string data((char*)buf, len);
-  BOOST_LOG_TRIVIAL(debug) << data;
-}
-
-void signalHandler( int signum ) {
+void signalHandler(int signum) {
    BOOST_LOG_TRIVIAL(info) << "Interrupt signal (" << signum << ") received.";
-   delete serial;
+   delete preprocessor;
    exit(signum);
 }
 
@@ -44,15 +35,12 @@ int main() {
   signal(SIGINT, signalHandler);
   setup_logging("sample.log");
 
-  // init serial
-  serial = new au_sonar::Serial("/dev/tty.usbmodem31796101", 115200);
-  serial->register_receive_callback(&callback);
-  if(!serial->init()) {
-    BOOST_LOG_TRIVIAL(fatal) << "Failed to initialize the serial port";
+  // init preprocessor
+  preprocessor = new au_sonar::Preprocessor("/dev/tty.usbmodem31796101");
+  if(!preprocessor->init()) {
     return 2;
   }
 
-  // serial.write("$set gain 60.0\n");
   while(1);
 
   return 0;

@@ -1,7 +1,7 @@
 /*
  * @author: Rumman Waqar
  *
- * Serial class
+ * Serial class handles serial communication
  * Read operations are done async and a callback is used to return the data
  * Write operations are blocking
  */

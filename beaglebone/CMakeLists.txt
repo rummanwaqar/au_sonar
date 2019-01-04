@@ -48,6 +48,6 @@ find_package(Boost COMPONENTS system log REQUIRED)
 
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
-    add_executable(uc src/uc.cpp src/serial.cpp)
+    add_executable(uc src/uc.cpp src/serial.cpp src/preprocessor.cpp)
     target_link_libraries(uc ${Boost_LIBRARIES})
 endif()
