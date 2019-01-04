@@ -1,3 +1,11 @@
+/*
+ * @author: Rumman Waqar
+ *
+ * Serial class
+ * Read operations are done async and a callback is used to return the data
+ * Write operations are blocking
+ */
+
 #ifndef _AU_SONAR_SERIAL_H_
 #define _AU_SONAR_SERIAL_H_
 
@@ -6,6 +14,7 @@
 #include <functional>
 #include <thread>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace au_sonar {
   class Serial {
@@ -18,7 +27,7 @@ namespace au_sonar {
     /*
      * calls close()
      */
-    ~Serial();
+    virtual ~Serial();
 
     /*
      * opens serial connection and create io service thread

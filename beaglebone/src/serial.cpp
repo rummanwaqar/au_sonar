@@ -4,11 +4,14 @@
 using namespace au_sonar;
 
 Serial::Serial(std::string port, unsigned int baud_rate) :
-  port_(port), baud_rate_(baud_rate), io_service_(), serial_port_(io_service_) {}
+  port_(port), baud_rate_(baud_rate), io_service_(), serial_port_(io_service_) {
+    BOOST_LOG_TRIVIAL(trace) << "Serial object created";
+}
 
 Serial::~Serial() {
   close();
 }
+
 
 bool Serial::init() {
   // open serial port
@@ -20,24 +23,28 @@ bool Serial::init() {
     serial_port_.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
     serial_port_.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
   } catch(boost::system::system_error e) {
-    std::cerr << e.what() << std::endl;
+    BOOST_LOG_TRIVIAL(error) << e.what();
     return false;
   }
   // start read operation
   async_read();
   // create a thread for io service to run on
   io_thread_ = std::thread([&]{ io_service_.run(); });
-  std::cout << "Serial port open" << std::endl;
+  BOOST_LOG_TRIVIAL(info) << "Serial port open: " << port_;
   return true;
 }
 
 void Serial::close() {
-  serial_port_.close();
-  io_service_.stop();
-  if(io_thread_.joinable()) {
-    io_thread_.join();
+  try {
+    serial_port_.close();
+    io_service_.stop();
+    if(io_thread_.joinable()) {
+      io_thread_.join();
+    }
+  } catch(std::exception& e) {
+    BOOST_LOG_TRIVIAL(error) << e.what();
   }
-  std::cout << "Serial port closed" << std::endl;
+  BOOST_LOG_TRIVIAL(info) << "Serial port closed";
 }
 
 bool Serial::is_open() {
@@ -48,6 +55,7 @@ int Serial::write(const std::string &buf) {
   boost::system::error_code ec;
   if(!is_open()) return 0;
   if(buf.size() == 0) return 0;
+  BOOST_LOG_TRIVIAL(debug) << "Wrote to serial: " << buf;
   return serial_port_.write_some(boost::asio::buffer(buf.c_str(), buf.size()), ec);
 }
 
@@ -63,7 +71,7 @@ void Serial::async_read() {
 
 void Serial::read_complete(const boost::system::error_code& error, size_t bytes_transferred) {
   if(error) {
-    std::cerr << error.message() << std::endl;
+    BOOST_LOG_TRIVIAL(warning) << "Reading: " << error.message();
     close();
     return;
   }

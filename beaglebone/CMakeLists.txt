@@ -40,10 +40,11 @@ else()
     message(WARNING "Not building Beaglebone specific targets")
 endif(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
 
+add_compile_options(-DBOOST_LOG_DYN_LINK)
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost COMPONENTS system)
+find_package(Boost COMPONENTS system log REQUIRED)
 
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
