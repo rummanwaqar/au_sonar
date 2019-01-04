@@ -32,7 +32,10 @@ namespace au_sonar {
      */
     void serial_callback(const uint8_t* buf, size_t len);
 
+    void parse_input(std::string&& line);
+
     au_sonar::Serial serial_;
+    std::string buffer_; // buffer to store incoming data until a complete line is found
   };
 } // namespace au_sonar
 

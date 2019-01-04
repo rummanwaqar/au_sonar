@@ -1,4 +1,3 @@
-#include <iostream>
 #include "serial.hpp"
 
 using namespace au_sonar;
