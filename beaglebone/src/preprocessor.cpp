@@ -44,10 +44,28 @@ void Preprocessor::serial_callback(const uint8_t* buf, size_t len) {
 }
 
 void Preprocessor::parse_input(std::string&& line) {
+  if (line.size() < 1) {
+    return;
+  }
+
   // find the starting character $
   std::size_t starting_index = line.find('$');
   if(starting_index!=std::string::npos) { // starting index found
-    line = line.substr(starting_index, std::string::npos);
+    line = line.substr(starting_index+1, std::string::npos);
+    // removing last char because its carriage return
+    line = line.erase(line.size() - 1);
+    // split line over spaces
+    std::vector<std::string> tokens;
+    boost::split(tokens, line, boost::is_any_of(" "));
+
+    if(tokens[0] == "ping") { // ping data
+      PingInfo info(tokens);
+      BOOST_LOG_TRIVIAL(info) << info;
+    } else if(tokens[0] == "set") { // write response
+
+    } else { // read response
+
+    }
     BOOST_LOG_TRIVIAL(debug) << line;
   } else { // invalid line
     BOOST_LOG_TRIVIAL(warning) << "Preprocessor input line invalid with no $ starting character ("
