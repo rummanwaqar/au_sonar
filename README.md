@@ -3,11 +3,15 @@
 ## Building the code
 
 #### Beaglebone Specific Code
-Make sure all dependiencies are installed. Check [Beaglebone Setup Guide](docs/bbb-install.md).
+Make sure all dependencies are installed. Check [Beaglebone Setup Guide](docs/bbb-install.md).
+
+Unit tests are enabled by setting the `TESTS` flag to 1. They are done through the [googletest](https://github.com/google/googletest) framework.
+
+Debugging information can be enabled to allow for debugging through GDB by setting the `DEBUG` flag to 1.
 ```
 cd beaglebone
 mkdir build && cd $_
-cmake ..
+cmake [-DTESTS=0/1] [-DDEBUG=0/1] ..
 make
 ```
 *Please note that the Beaglebone specific code only compiles on a Beaglebone. It will exit cleanly without compiling on any other system.*
@@ -18,7 +22,7 @@ Compile with `catkin_make`
 ## Running the code
 
 #### Beaglebone Data Acqusition Server
-Run `beaglebone/run.sh` 
+Run `beaglebone/run.sh`
 
 #### ROS node
 Run `roslaunch au_sonar sonar_node.launch freq:=<target freq in Khz>`
