@@ -9,6 +9,14 @@ set(BBB_HOSTNAME "beaglebone")
 ## use this to globally use C++11 with in our project
 add_compile_options(-std=c++11)
 
+option(DEBUG "Build with debug flags" 0)
+if(DEBUG)
+    message(WARNING "Building with debug flags")
+    set(CMAKE_BUILD_TYPE Debug)
+else()
+    message(STATUS "Building without debug flags")
+endif()
+
 include_directories(include)
 
 if(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
@@ -39,6 +47,14 @@ if(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
 else()
     message(WARNING "Not building Beaglebone specific targets")
 endif(${SYSTEM_HOSTNAME} STREQUAL ${BBB_HOSTNAME})
+
+option(TESTS "Build unit tests" 0)
+if(TESTS)
+    message(STATUS "Building tests.")
+    add_subdirectory(tests)
+else()
+    message(STATUS "Not building tests.")
+endif()
 
 add_compile_options(-DBOOST_LOG_DYN_LINK)
 set(Boost_USE_STATIC_LIBS OFF)
