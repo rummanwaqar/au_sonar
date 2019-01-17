@@ -6,8 +6,8 @@ cmake_host_system_information(RESULT SYSTEM_HOSTNAME QUERY HOSTNAME)
 message(STATUS "HOSTNAME: ${SYSTEM_HOSTNAME}")
 set(BBB_HOSTNAME "beaglebone")
 
-## use this to globally use C++11 with in our project
-add_compile_options(-std=c++11)
+## use this to globally use C++17 with in our project
+add_compile_options(-std=c++17)
 
 option(DEBUG "Build with debug flags" 0)
 if(DEBUG)
@@ -65,6 +65,9 @@ find_package(Boost COMPONENTS system log REQUIRED)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     add_executable(uc src/uc.cpp src/serial.cpp src/preprocessor.cpp)
+    target_link_libraries(uc ${Boost_LIBRARIES})
+
+    add_executable(skeleton src/skeleton.cpp)
     target_link_libraries(uc ${Boost_LIBRARIES})
 endif()
 
