@@ -45,7 +45,12 @@ namespace au_sonar {
     }
   };
 
-
+  struct AdcData {
+    float a;
+    float refb;
+    float b;
+    float refb;
+  };
 
 } // namspace au_sonar
 
