@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(au_sonar_bbb)
 
 # get system information
@@ -67,3 +67,30 @@ if(Boost_FOUND)
     add_executable(uc src/uc.cpp src/serial.cpp src/preprocessor.cpp)
     target_link_libraries(uc ${Boost_LIBRARIES})
 endif()
+
+# 0mq
+find_package(cppzmq)
+
+# generate proto code for sonardata.proto
+find_package(Protobuf REQUIRED)
+if(PROTOBUF_FOUND)
+    message ("-- Protobuf found")
+else()
+    message (FATAL_ERROR "Cannot find Protobuf")
+endif()
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS proto/sonardata.proto)
+message ("PROTO_SRCS = ${PROTO_SRCS}")
+message ("PROTO_HDRS = ${PROTO_HDRS}")
+
+# compile executable with protobuf
+add_executable(protobuf_test src/protobuf_test.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_include_directories(protobuf_test
+    PUBLIC
+    ${PROTOBUF_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+target_link_libraries(protobuf_test
+    PUBLIC
+    ${PROTOBUF_LIBRARIES}
+    cppzmq
+)

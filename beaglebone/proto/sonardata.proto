@@ -1,0 +1,10 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+package au_sonar;
+
+message SonarData {
+    google.protobuf.Timestamp timestamp = 1;
+    repeated float data = 2;
+    map<string, float> stats = 3;
+}
