@@ -45,11 +45,25 @@ namespace au_sonar {
     }
   };
 
-  struct AdcData {
+  /*
+   * single hydrophone-set data point
+   */
+  struct AdcSample {
     float a;
-    float refb;
+    float refa;
     float b;
     float refb;
+  };
+
+  /*
+   * data structure from PRU DAQ
+   */
+  struct AdcData {
+    // time when first data point recieved
+    long long timestamp;
+
+    // vector of all adc samples for a single ping
+    std::vector<AdcSample> data;
   };
 
 } // namspace au_sonar
