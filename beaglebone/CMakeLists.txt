@@ -66,9 +66,6 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     add_executable(uc src/uc.cpp src/serial.cpp src/preprocessor.cpp)
     target_link_libraries(uc ${Boost_LIBRARIES})
-
-    add_executable(skeleton src/skeleton.cpp)
-    target_link_libraries(uc ${Boost_LIBRARIES})
 endif()
 
 # generate proto code for sonardata.proto
