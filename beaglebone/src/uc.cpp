@@ -11,12 +11,11 @@
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
 
-au_sonar::Preprocessor* preprocessor;
+bool exit_flag = false;
 
 void signalHandler(int signum) {
    BOOST_LOG_TRIVIAL(info) << "Interrupt signal (" << signum << ") received.";
-   delete preprocessor;
-   exit(signum);
+   exit_flag = true;
 }
 
 void setup_logging(std::string log_file) {
@@ -44,13 +43,13 @@ int main() {
   au_sonar::SonarData sonar_data;
 
   // init preprocessor
-  preprocessor = new au_sonar::Preprocessor("/dev/tty.usbmodem31796101", std::ref(sonar_data));
-  if(!preprocessor->init()) {
+  au_sonar::Preprocessor preprocessor("/dev/tty.usbmodem31796101", std::ref(sonar_data));
+  if(!preprocessor.init()) {
     BOOST_LOG_TRIVIAL(info) << "EXITING";
     return 2;
   }
 
-  while(1) {
+  while(!exit_flag) {
     sonar_data.wait_and_process(process_sonar_data);
   }
 
