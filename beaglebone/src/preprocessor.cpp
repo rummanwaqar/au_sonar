@@ -1,5 +1,4 @@
 #include "preprocessor.hpp"
-#include <iostream>
 
 using namespace au_sonar;
 
@@ -59,8 +58,15 @@ void Preprocessor::parse_input(std::string&& line) {
     boost::split(tokens, line, boost::is_any_of(" "));
 
     if(tokens[0] == "ping") { // ping data
-      PingInfo info(tokens);
-      BOOST_LOG_TRIVIAL(info) << info;
+      // build ping info object
+      PingInfo info;
+      for_each(tokens.begin()+1, tokens.end(), [&](std::string const& token) {
+        std::vector<std::string> pair;
+        boost::split(pair, token, boost::is_any_of("="));
+        info.data[pair[0]] = std::stof(pair[1]);
+      });
+
+      BOOST_LOG_TRIVIAL(info) << info.to_string();
     } else if(tokens[0] == "set") { // write response
 
     } else { // read response
