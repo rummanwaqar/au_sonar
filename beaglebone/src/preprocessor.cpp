@@ -2,8 +2,8 @@
 
 using namespace au_sonar;
 
-Preprocessor::Preprocessor(std::string port) :
-  serial_(port, 115200) {
+Preprocessor::Preprocessor(std::string port, SonarData& sonar_data) :
+  serial_(port, 115200), sonar_data_(sonar_data) {
     // set up callback function for serial reads
     serial_.register_receive_callback(std::bind(&Preprocessor::serial_callback,
       this, std::placeholders::_1, std::placeholders::_2));
@@ -65,8 +65,9 @@ void Preprocessor::parse_input(std::string&& line) {
         boost::split(pair, token, boost::is_any_of("="));
         info.data[pair[0]] = std::stof(pair[1]);
       });
-
       BOOST_LOG_TRIVIAL(info) << info.to_string();
+      // add info to sonar data object
+      sonar_data_.add_data(std::move(info));
     } else if(tokens[0] == "set") { // write response
 
     } else { // read response
