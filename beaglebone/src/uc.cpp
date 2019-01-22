@@ -8,6 +8,7 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
+#include "datatypes.hpp"
 #include "preprocessor.hpp"
 
 au_sonar::Preprocessor* preprocessor;
@@ -31,18 +32,27 @@ void setup_logging(std::string log_file) {
   boost::log::add_common_attributes();
 }
 
+void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
+  std::cout << "got data" << std::endl;
+}
+
 int main() {
   signal(SIGINT, signalHandler);
   setup_logging("sample.log");
 
+  // create sonar data object
+  au_sonar::SonarData sonar_data;
+
   // init preprocessor
-  preprocessor = new au_sonar::Preprocessor("/dev/tty.usbmodem31796101");
+  preprocessor = new au_sonar::Preprocessor("/dev/tty.usbmodem31796101", std::ref(sonar_data));
   if(!preprocessor->init()) {
     BOOST_LOG_TRIVIAL(info) << "EXITING";
     return 2;
   }
 
-  while(1);
+  while(1) {
+    sonar_data.wait_and_process(process_sonar_data);
+  }
 
   return 0;
 }
