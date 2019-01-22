@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 #include <queue>
 #include <functional>
 #include <boost/log/trivial.hpp>

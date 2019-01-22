@@ -38,6 +38,7 @@ int main() {
   // init preprocessor
   preprocessor = new au_sonar::Preprocessor("/dev/tty.usbmodem31796101");
   if(!preprocessor->init()) {
+    BOOST_LOG_TRIVIAL(info) << "EXITING";
     return 2;
   }
 
