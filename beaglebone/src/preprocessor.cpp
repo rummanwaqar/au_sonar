@@ -1,5 +1,5 @@
 #include "preprocessor.hpp"
-
+#include <iostream>
 using namespace au_sonar;
 
 Preprocessor::Preprocessor(std::string port, SonarData& sonar_data) :
@@ -16,6 +16,13 @@ bool Preprocessor::init() {
     return false;
   }
   return true;
+}
+
+std::string Preprocessor::write_command(std::string command, int timeout) {
+  std::string with_nl = command + "\n";
+  if(serial_.write(with_nl) != with_nl.size()) {
+    throw std::runtime_error("Failed to write command: " + command);
+  }
 }
 
 void Preprocessor::serial_callback(const uint8_t* buf, size_t len) {
@@ -46,7 +53,6 @@ void Preprocessor::parse_input(std::string&& line) {
   if (line.size() < 1) {
     return;
   }
-
   // find the starting character $
   std::size_t starting_index = line.find('$');
   if(starting_index!=std::string::npos) { // starting index found

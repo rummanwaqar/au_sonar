@@ -31,6 +31,14 @@ namespace au_sonar {
      */
     bool init();
 
+    /*
+     * send a commmand to preprocessor board using serial
+     * returns result
+     * throws runtime_error exception if unable to verify without timeout (milliseconds)
+     * command adds newline
+     */
+    std::string write_command(std::string command, int timeout);
+
   private:
     /*
      * callback for serial reads

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <csignal>
+#include <zmq.hpp>
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/console.hpp>
@@ -10,6 +11,8 @@
 
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
+
+#define ZMQ_COMMAND_SERVER "tcp://*:5555"
 
 bool exit_flag = false;
 
@@ -35,6 +38,36 @@ void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp
   std::cout << "got data" << std::endl;
 }
 
+void command_thread(au_sonar::Preprocessor& preprocessor) {
+    // setup zmq server
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_REP);
+    socket.bind(ZMQ_COMMAND_SERVER);
+
+    while(1) {
+      zmq::message_t request;
+      //  Wait for next request from client
+      socket.recv(&request);
+      std::string command(static_cast<char*>(request.data()));
+
+      // send command to preprocessor and wait for response
+      std::string response;
+      try {
+        response = preprocessor.write_command(command, 1000);
+      } catch (std::runtime_error& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+      }
+      if(response == "") {
+        //  Send reply back to client
+        response = std::string("error: unable to write");
+      }
+
+      zmq::message_t reply(response.size());
+      std::memcpy(reply.data(), response.data(), response.size());
+      socket.send(reply);
+    }
+}
+
 int main() {
   signal(SIGINT, signalHandler);
   setup_logging("sample.log");
@@ -48,6 +81,8 @@ int main() {
     BOOST_LOG_TRIVIAL(info) << "EXITING";
     return 2;
   }
+
+  std::thread thread_A{command_thread, std::ref(preprocessor)};
 
   while(!exit_flag) {
     sonar_data.wait_and_process(process_sonar_data);

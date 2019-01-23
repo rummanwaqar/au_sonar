@@ -85,6 +85,10 @@ namespace au_sonar {
     }
   };
 
+  /*
+   * full sonar data (status + adc values)
+   * manages merging + reading combined value
+   */
   struct SonarData : DataWithTime {
   public:
     PingInfo info;
