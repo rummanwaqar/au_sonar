@@ -62,10 +62,13 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS system log REQUIRED)
 
+# 0mq
+find_package(cppzmq)
+
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     add_executable(uc src/uc.cpp src/serial.cpp src/preprocessor.cpp)
-    target_link_libraries(uc ${Boost_LIBRARIES})
+    target_link_libraries(uc ${Boost_LIBRARIES} cppzmq)
 endif()
 
 # generate proto code for sonardata.proto

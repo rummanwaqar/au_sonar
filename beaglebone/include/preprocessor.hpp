@@ -31,6 +31,14 @@ namespace au_sonar {
      */
     bool init();
 
+    /*
+     * send a commmand to preprocessor board using serial
+     * returns result
+     * throws runtime_error exception if unable to verify without timeout (milliseconds)
+     * command adds newline
+     */
+    std::string write_command(const std::string& command);
+
   private:
     /*
      * callback for serial reads
@@ -46,6 +54,7 @@ namespace au_sonar {
     au_sonar::Serial serial_;
     std::string buffer_; // buffer to store incoming data until a complete line is found
     std::queue<PingInfo> ping_queue_; // stores incoming ping status messages
+    au_sonar::SerialResponse response_;
 
     SonarData& sonar_data_; // sonar data reference. manages sync between sonar info and data
   };

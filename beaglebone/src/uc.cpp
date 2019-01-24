@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <csignal>
+#include <zmq.hpp>
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/console.hpp>
@@ -10,6 +11,8 @@
 
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
+
+#define ZMQ_COMMAND_SERVER "tcp://*:5555"
 
 bool exit_flag = false;
 
@@ -27,12 +30,41 @@ void setup_logging(std::string log_file) {
   );
   boost::log::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%] [%Severity%] %Message%");
   boost::log::core::get()->set_filter(
-    boost::log::trivial::severity >= boost::log::trivial::debug);
+    boost::log::trivial::severity >= boost::log::trivial::info);
   boost::log::add_common_attributes();
 }
 
 void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
   std::cout << "got data" << std::endl;
+}
+
+void command_thread(au_sonar::Preprocessor& preprocessor) {
+    // setup zmq server
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_REP);
+    socket.bind(ZMQ_COMMAND_SERVER);
+
+    while(1) {
+      zmq::message_t request;
+      //  Wait for next request from client
+      socket.recv(&request);
+      std::string command(static_cast<char*>(request.data()));
+      BOOST_LOG_TRIVIAL(info) << "Got command: " << command;
+
+      // send command to preprocessor and wait for response
+      std::string response;
+      try {
+        response = preprocessor.write_command(command);
+      } catch (std::runtime_error& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+        response = std::string("error: unable to write");
+      }
+      BOOST_LOG_TRIVIAL(info) << "Returned command response: " << response;
+
+      zmq::message_t reply(response.size());
+      std::memcpy(reply.data(), response.data(), response.size());
+      socket.send(reply);
+    }
 }
 
 int main() {
@@ -48,6 +80,8 @@ int main() {
     BOOST_LOG_TRIVIAL(info) << "EXITING";
     return 2;
   }
+
+  std::thread thread_A{command_thread, std::ref(preprocessor)};
 
   while(!exit_flag) {
     sonar_data.wait_and_process(process_sonar_data);

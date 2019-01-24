@@ -38,6 +38,35 @@ namespace au_sonar {
   };
 
   /*
+   * data structure to store serial response data
+   */
+  struct SerialResponse {
+  public:
+    // add ping adc data
+    void add_data(std::string && data) {
+      // acquire mutex
+      std::lock_guard<std::mutex> lock(mux_);
+      // write data
+      response_  = data;
+      convar_.notify_one();
+    }
+
+    // wait for data to be available and then return it (timeout in ms)
+    std::string get_data(int timeout=50) {
+      std::unique_lock<std::mutex> lock(mux_);
+      // wait until full data object ready
+      if(convar_.wait_for(lock,std::chrono::milliseconds(timeout)) == std::cv_status::timeout) {
+        return "";
+      }
+      return response_;
+    }
+  private:
+    std::string response_;
+    std::mutex mux_;
+    std::condition_variable convar_;
+  };
+
+  /*
    * ping stats
    */
   struct PingInfo : DataWithTime {
@@ -85,6 +114,10 @@ namespace au_sonar {
     }
   };
 
+  /*
+   * full sonar data (status + adc values)
+   * manages merging + reading combined value
+   */
   struct SonarData : DataWithTime {
   public:
     PingInfo info;
