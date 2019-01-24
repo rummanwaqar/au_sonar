@@ -30,7 +30,7 @@ void setup_logging(std::string log_file) {
   );
   boost::log::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%] [%Severity%] %Message%");
   boost::log::core::get()->set_filter(
-    boost::log::trivial::severity >= boost::log::trivial::debug);
+    boost::log::trivial::severity >= boost::log::trivial::info);
   boost::log::add_common_attributes();
 }
 
@@ -49,18 +49,17 @@ void command_thread(au_sonar::Preprocessor& preprocessor) {
       //  Wait for next request from client
       socket.recv(&request);
       std::string command(static_cast<char*>(request.data()));
+      BOOST_LOG_TRIVIAL(info) << "Got command: " << command;
 
       // send command to preprocessor and wait for response
       std::string response;
       try {
-        response = preprocessor.write_command(command, 1000);
+        response = preprocessor.write_command(command);
       } catch (std::runtime_error& e) {
         BOOST_LOG_TRIVIAL(error) << e.what();
-      }
-      if(response == "") {
-        //  Send reply back to client
         response = std::string("error: unable to write");
       }
+      BOOST_LOG_TRIVIAL(info) << "Returned command response: " << response;
 
       zmq::message_t reply(response.size());
       std::memcpy(reply.data(), response.data(), response.size());

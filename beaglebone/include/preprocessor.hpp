@@ -37,7 +37,7 @@ namespace au_sonar {
      * throws runtime_error exception if unable to verify without timeout (milliseconds)
      * command adds newline
      */
-    std::string write_command(std::string command, int timeout);
+    std::string write_command(const std::string& command);
 
   private:
     /*
@@ -54,6 +54,7 @@ namespace au_sonar {
     au_sonar::Serial serial_;
     std::string buffer_; // buffer to store incoming data until a complete line is found
     std::queue<PingInfo> ping_queue_; // stores incoming ping status messages
+    au_sonar::SerialResponse response_;
 
     SonarData& sonar_data_; // sonar data reference. manages sync between sonar info and data
   };

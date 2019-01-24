@@ -1,5 +1,4 @@
 #include "preprocessor.hpp"
-#include <iostream>
 using namespace au_sonar;
 
 Preprocessor::Preprocessor(std::string port, SonarData& sonar_data) :
@@ -18,11 +17,17 @@ bool Preprocessor::init() {
   return true;
 }
 
-std::string Preprocessor::write_command(std::string command, int timeout) {
-  std::string with_nl = command + "\n";
-  if(serial_.write(with_nl) != with_nl.size()) {
+std::string Preprocessor::write_command(const std::string& command) {
+  std::string command_with_nl = command + "\n";
+  if(serial_.write(command_with_nl) != command_with_nl.size()) {
     throw std::runtime_error("Failed to write command: " + command);
   }
+  // process echoed data
+  std::string output = response_.get_data(20);
+  if(output == "") {
+    return "Failed to get response for command: " + command;
+  }
+  return output;
 }
 
 void Preprocessor::serial_callback(const uint8_t* buf, size_t len) {
@@ -74,12 +79,12 @@ void Preprocessor::parse_input(std::string&& line) {
       BOOST_LOG_TRIVIAL(info) << info.to_string();
       // add info to sonar data object
       sonar_data_.add_data(std::move(info));
-    } else if(tokens[0] == "set") { // write response
-
-    } else { // read response
-
+    } else { // read/write response
+      // set data
+      response_.add_data(std::move(line));
+      BOOST_LOG_TRIVIAL(debug) << "Write reponse: " << line;
     }
-    BOOST_LOG_TRIVIAL(debug) << line;
+    // BOOST_LOG_TRIVIAL(debug) << line;
   } else { // invalid line
     BOOST_LOG_TRIVIAL(warning) << "Preprocessor input line invalid with no $ starting character ("
       << line << ")";
