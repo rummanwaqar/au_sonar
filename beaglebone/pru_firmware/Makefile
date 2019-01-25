@@ -1,5 +1,6 @@
 RM := $(RM)
-PASM := pasm -DBUILD_WITH_PASM=1
+PASM = pasm
+BUILD_CMD := $(PASM) -DBUILD_WITH_PASM=1
 
 INCLUDE_DIR := ../include
 
@@ -11,6 +12,6 @@ all: $(TARGETS)
 
 clean:
 		$(RM) $(TARGETS)
-		
+
 %.bin: %.p
-		$(PASM) -I$(INCLUDE_DIR) -b $< $(basename $^)
+		$(BUILD_CMD) -I$(INCLUDE_DIR) -b $< $(basename $^)
