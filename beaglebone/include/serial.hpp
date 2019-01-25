@@ -14,7 +14,7 @@
 #include <functional>
 #include <thread>
 #include <boost/asio.hpp>
-#include <boost/log/trivial.hpp>
+#include <plog/Log.h>
 
 namespace au_sonar {
   class Serial {

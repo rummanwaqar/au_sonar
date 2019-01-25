@@ -11,7 +11,7 @@ Preprocessor::Preprocessor(std::string port, SonarData& sonar_data) :
 bool Preprocessor::init() {
   // init serial
   if(!serial_.init()) {
-    BOOST_LOG_TRIVIAL(fatal) << "Failed to initialize the serial port";
+    LOG_FATAL << "Failed to initialize the serial port";
     return false;
   }
   return true;
@@ -50,7 +50,7 @@ void Preprocessor::serial_callback(const uint8_t* buf, size_t len) {
   if(buffer_.size() > 5000) {
     // buffer size should never get too big. Reset it
     buffer_.clear();
-    BOOST_LOG_TRIVIAL(warning) << "Preprocessor input buffer got too big and had to be cleared.";
+    LOG_WARNING << "Preprocessor input buffer got too big and had to be cleared.";
   }
 }
 
@@ -76,17 +76,17 @@ void Preprocessor::parse_input(std::string&& line) {
         boost::split(pair, token, boost::is_any_of("="));
         info.data[pair[0]] = std::stof(pair[1]);
       });
-      BOOST_LOG_TRIVIAL(info) << info.to_string();
+      LOG_INFO << info.to_string();
       // add info to sonar data object
       sonar_data_.add_data(std::move(info));
     } else { // read/write response
       // set data
       response_.add_data(std::move(line));
-      BOOST_LOG_TRIVIAL(debug) << "Write reponse: " << line;
+      LOG_VERBOSE << "Write reponse: " << line;
     }
-    // BOOST_LOG_TRIVIAL(debug) << line;
+    LOG_DEBUG << line;
   } else { // invalid line
-    BOOST_LOG_TRIVIAL(warning) << "Preprocessor input line invalid with no $ starting character ("
+    LOG_WARNING << "Preprocessor input line invalid with no $ starting character ("
       << line << ")";
   }
 }
