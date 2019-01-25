@@ -117,7 +117,7 @@ set(PRU_FIRMWARE_OUTPUTS
 )
 add_custom_command(
         OUTPUT ${PRU_FIRMWARE_OUTPUTS}
-        COMMAND make all PASM=${PASM_TOOL}
+        COMMAND make all PASM=${PASM_TOOL} BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}
         WORKING_DIRECTORY "${PRU_WORKING_DIRECTORY}"
         DEPENDS pasm "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
         COMMENT "Building PRU firmware"
