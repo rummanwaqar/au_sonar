@@ -1,8 +1,8 @@
 #include "CommInterface.h"
 
 CommInterface::CommInterface(void) {
-  Serial.begin(115200);
-  Serial.setTimeout(1000);
+  Serial1.begin(115200);
+  Serial1.setTimeout(1000);
 
   messageReceived = false;
   debugFlag = false;
@@ -44,22 +44,22 @@ void CommInterface::parseMessage(void) {
   if (messageReceived) {
     // if debug enabled print information about the command
     if (debugFlag) {
-      Serial.print(F("Command: "));
-      Serial.println(commands[commandIndex]);
-      Serial.print(F("Variable: "));
-      Serial.println(variables[variableIndex]);
+      Serial1.print(F("Command: "));
+      Serial1.println(commands[commandIndex]);
+      Serial1.print(F("Variable: "));
+      Serial1.println(variables[variableIndex]);
 
       // CommandIndex = 0 is a "set" command so it would have arguments
       // CommandIndex = 1 is a "get" command so it would NOT have arguments
       if (commandIndex == 0) {
-        Serial.print(F("Arguments: "));
-        Serial.print(argument1String);
-        Serial.print(" ");
-        Serial.println(argument2String);
+        Serial1.print(F("Arguments: "));
+        Serial1.print(argument1String);
+        Serial1.print(" ");
+        Serial1.println(argument2String);
       }
 
       // Wait untill information is transferred.
-      Serial.flush();
+      Serial1.flush();
     }
 
     // We should have command, variable, and argument (if "set")
@@ -85,22 +85,22 @@ void CommInterface::checkSerial(void) {
   messageReceived = false;
 
   // Message should start with '$' and end with '\n'. Max is 31 characters
-  message = Serial.readStringUntil('\n', 32);
+  message = Serial1.readStringUntil('\n', 32);
 
   if ((message[0] == '$') && (message.length() >= 4) &&
       (message.length() < 32)) {
     // Echo the successful message transfer
-    Serial.println(message);
+    Serial1.println(message);
     messageReceived = true;
   } else {
     message = String("");
   }
 
-  // Serial.readStringUntil doesn't clear the buffer completely
+  // Serial1.readStringUntil doesn't clear the buffer completely
   // So this while loop will clear the transmission queue
-  while (Serial.available()) {
+  while (Serial1.available()) {
     // Get the trash (ie new line character)
-    trashchar = Serial.read();
+    trashchar = Serial1.read();
   }
 }
 
@@ -435,14 +435,14 @@ void CommInterface::prepareTransmission(void) {
   // variable index 13 and 14 are pingStatus and centerFreq respectively
   if ((variableIndex == 13) || (variableIndex == 14) || (variableIndex == 16) ||
       (variableIndex == 1)) {
-    Serial.println("$" + String(variables[variableIndex]) + " " +
+    Serial1.println("$" + String(variables[variableIndex]) + " " +
                    String(output_int));
   } else {
-    Serial.println("$" + String(variables[variableIndex]) + " " +
+    Serial1.println("$" + String(variables[variableIndex]) + " " +
                    String(output_float));
   }
 
-  Serial.flush();
+  Serial1.flush();
 }
 
 // Simple cleanup method.

@@ -56,6 +56,7 @@ int PeakDetector::getPingStatus(float &peaklevel) {
   if (peaklevel <= goodlevel) {                   // Invalid ping levels
     pingvalid = 0;
     digitalWrite(GPIO_3, LOW);  // Ping flag LOW
+    digitalWrite(BUILTIN_LED, LOW);
     return pingvalid;
   }
   if (peaklevel > goodlevel) {  // Valid ping levels
@@ -69,6 +70,7 @@ int PeakDetector::getPingStatus(float &peaklevel) {
       if ((pingoffset - offsettime) < pingValidStart) {  // Set pingvalid to LOW
         pingvalid = 3;
         digitalWrite(GPIO_3, LOW);  // Ping flag LOW
+        digitalWrite(BUILTIN_LED, LOW);
         // Serial.print("Start");
         return pingvalid;
       }
@@ -76,6 +78,7 @@ int PeakDetector::getPingStatus(float &peaklevel) {
           ((pingoffset - offsettime) < pingValidEnd)) {
         pingvalid = 1;
         digitalWrite(GPIO_3, HIGH);  // Ping flag HIGH
+        digitalWrite(BUILTIN_LED, HIGH);
         // Serial.print("Valid");
         return pingvalid;
       }
@@ -83,6 +86,7 @@ int PeakDetector::getPingStatus(float &peaklevel) {
           pingValidEnd) {  // Set pingvalid to LOW and clear the validcounter
         pingvalid = 2;
         digitalWrite(GPIO_3, LOW);  // Ping flag LOW
+        digitalWrite(BUILTIN_LED, LOW);
         validcounter = 0;
         // Serial.print("End");
         return pingvalid;
