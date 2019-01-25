@@ -57,13 +57,13 @@ int main() {
 
   // logging
   static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-  plog::init(plog::debug, "log.txt").addAppender(&consoleAppender);
+  plog::init(plog::info, "log.txt").addAppender(&consoleAppender);
 
   // create sonar data object
   au_sonar::SonarData sonar_data;
 
   // init preprocessor
-  au_sonar::Preprocessor preprocessor("/dev/tty.usbmodem31796101", std::ref(sonar_data));
+  au_sonar::Preprocessor preprocessor("/dev/ttyO4", std::ref(sonar_data));
   if(!preprocessor.init()) {
     LOG_INFO << "Exiting program";
     return 2;
