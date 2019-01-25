@@ -155,8 +155,9 @@ namespace au_sonar {
     void wait_and_process(std::function<void(std::chrono::high_resolution_clock::time_point timestamp, PingInfo& info, PingData& data)> func) {
       std::unique_lock<std::mutex> lock(mux_);
       // wait until full data object ready
-      convar_.wait(lock);
-      func(timestamp, info, adcData);
+      if(convar_.wait_for(lock, std::chrono::milliseconds(500)) != std::cv_status::timeout) {
+        func(timestamp, info, adcData);
+      }
     }
   private:
      std::mutex mux_;
