@@ -4,7 +4,7 @@ using namespace au_sonar;
 
 Serial::Serial(std::string port, unsigned int baud_rate) :
   port_(port), baud_rate_(baud_rate), io_service_(), serial_port_(io_service_) {
-    BOOST_LOG_TRIVIAL(trace) << "Serial object created";
+    LOG_VERBOSE << "Serial object created";
 }
 
 Serial::~Serial() {
@@ -22,14 +22,14 @@ bool Serial::init() {
     serial_port_.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
     serial_port_.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
   } catch(boost::system::system_error e) {
-    BOOST_LOG_TRIVIAL(error) << e.what();
+    LOG_ERROR << e.what();
     return false;
   }
   // start read operation
   async_read();
   // create a thread for io service to run on
   io_thread_ = std::thread([&]{ io_service_.run(); });
-  BOOST_LOG_TRIVIAL(info) << "Serial port open: " << port_;
+  LOG_ERROR << "Serial port open: " << port_;
   return true;
 }
 
@@ -41,9 +41,9 @@ void Serial::close() {
       io_thread_.join();
     }
   } catch(std::exception& e) {
-    BOOST_LOG_TRIVIAL(error) << e.what();
+    LOG_ERROR << e.what();
   }
-  BOOST_LOG_TRIVIAL(info) << "Serial port closed";
+  LOG_INFO << "Serial port closed";
 }
 
 bool Serial::is_open() {
@@ -54,7 +54,7 @@ int Serial::write(const std::string &buf) {
   boost::system::error_code ec;
   if(!is_open()) return 0;
   if(buf.size() == 0) return 0;
-  BOOST_LOG_TRIVIAL(debug) << "Wrote to serial: " << buf;
+  LOG_VERBOSE << "Wrote to serial: " << buf;
   return serial_port_.write_some(boost::asio::buffer(buf.c_str(), buf.size()), ec);
 }
 
@@ -70,7 +70,7 @@ void Serial::async_read() {
 
 void Serial::read_complete(const boost::system::error_code& error, size_t bytes_transferred) {
   if(error) {
-    BOOST_LOG_TRIVIAL(warning) << "Reading: " << error.message();
+    LOG_ERROR << "Reading: " << error.message();
     close();
     return;
   }

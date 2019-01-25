@@ -76,12 +76,18 @@ add_custom_target(pasm ALL DEPENDS ${PASM_TOOL})
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include )
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
+# plog
+ExternalProject_Add(plog
+    GIT_REPOSITORY    https://github.com/SergiusTheBest/plog
+    PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/plog
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/plog/src/plog/include)
+
 # boost
-add_compile_options(-DBOOST_LOG_DYN_LINK)
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost COMPONENTS system log REQUIRED)
+find_package(Boost COMPONENTS system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 #####################
@@ -103,11 +109,9 @@ if(Boost_FOUND)
 endif()
 
 # build main executable
-#if(Boost_FOUND)
-#    add_executable(uc src/uc.cpp)
-#    add_dependencies(uc preprocessor cppzmq)
-#    target_link_libraries(uc ${Boost_LIBRARIES} libzmq.so preprocessor)
-#endif()
+add_executable(uc src/uc.cpp)
+add_dependencies(uc preprocessor cppzmq)
+target_link_libraries(uc libzmq.so preprocessor pthread)
 
 # build pru firmware
 set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")

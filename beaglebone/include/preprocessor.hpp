@@ -12,8 +12,9 @@
 #include <sstream>
 #include <queue>
 #include <functional>
-#include <boost/log/trivial.hpp>
+
 #include <boost/algorithm/string.hpp>
+#include <plog/Log.h>
 
 #include "serial.hpp"
 #include "datatypes.hpp"
