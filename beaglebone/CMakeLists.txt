@@ -4,6 +4,14 @@ project(au_sonar_bbb)
 ## use this to globally use C++17 with in our project
 add_compile_options(-std=c++17)
 
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7")
+    message(STATUS "Building with ARM flags")
+    set(CROSS_COMPILE_FLAGS "-mtune=cortex-a8 -march=armv7-a")
+ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7")
+    message(STATUS "Not building with ARM flags")
+    set(CROSS_COMPILE_FLAGS "")
+ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7")
+
 #########################
 # External Dependencies #
 #########################
@@ -30,14 +38,15 @@ ExternalProject_Add(pruss_download
     INSTALL_COMMAND   ""
 )
 set(PRUSSDRV_DIR "${CMAKE_CURRENT_BINARY_DIR}/pruss_download/src/pruss_download/pru_sw/app_loader")
-set(PRUSSDRV_LIBS ${PRUSSDRV_DIR}/lib/libprussdrvd.so ${PRUSSDRV_DIR}/lib/libprussdrv.so)
+set(PRUSSDRV_LIBS "${PRUSSDRV_DIR}/lib/libprussdrv.a" "${PRUSSDRV_DIR}/lib/libprussdrv.so")
 add_custom_command(OUTPUT ${PRUSSDRV_LIBS}
                    DEPENDS pruss_download
-                   COMMAND make CROSS_COMPILE="" ARM_COMPILE_FLAGS="" LIBDIR="${EXTERNAL_INSTALL_LOCATION}/lib"
+		   COMMAND make CROSS_COMPILE="" ARM_COMPILE_FLAGS="${CROSS_COMPILE_FLAGS}" release sorelease
                    WORKING_DIRECTORY ${PRUSSDRV_DIR}/interface
 )
 add_custom_target(prussdrv ALL DEPENDS ${PRUSSDRV_LIBS})
 include_directories(${PRUSSDRV_DIR}/include)
+link_directories(${PRUSSDRV_DIR}/lib)
 
 # pasm
 set(PASM_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/pruss_download/src/pruss_download/pru_sw/utils/pasm_source")
@@ -97,11 +106,11 @@ if(Boost_FOUND)
 endif()
 
 # build main executable
-if(Boost_FOUND)
-    add_executable(uc src/uc.cpp)
-    add_dependencies(uc preprocessor cppzmq)
-    target_link_libraries(uc ${Boost_LIBRARIES} libzmq.so preprocessor)
-endif()
+#if(Boost_FOUND)
+#    add_executable(uc src/uc.cpp)
+#    add_dependencies(uc preprocessor cppzmq)
+#    target_link_libraries(uc ${Boost_LIBRARIES} libzmq.so preprocessor)
+#endif()
 
 # build pru firmware
 set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
@@ -113,7 +122,7 @@ add_custom_command(
         OUTPUT ${PRU_FIRMWARE_OUTPUTS}
         COMMAND make all PASM=${PASM_TOOL}
         WORKING_DIRECTORY "${PRU_WORKING_DIRECTORY}"
-        DEPENDS "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
+        DEPENDS pasm "${PRU_WORKING_DIRECTORY}/pru0-clock.p" "${PRU_WORKING_DIRECTORY}/pru1-read-data.p"
         COMMENT "Building PRU firmware"
         VERBATIM
 )
