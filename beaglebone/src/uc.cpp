@@ -1,21 +1,22 @@
 #include <iostream>
 #include <string>
 #include <csignal>
-#include <zmq.hpp>
+#include <atomic>
 
-#include "plog/Log.h"
-#include "plog/Appenders/ColorConsoleAppender.h"
+#include <zmq.hpp>
+#include <plog/Log.h>
+#include <plog/Appenders/ColorConsoleAppender.h>
 
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
 
 #define ZMQ_COMMAND_SERVER "tcp://*:5555"
 
-bool exit_flag = false;
+std::atomic<bool> keepRunning{true};
 
 void signalHandler(int signum) {
    LOG_INFO << "Interrupt signal (" << signum << ") received.";
-   exit_flag = true;
+   keepRunning = false;
 }
 
 void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
@@ -28,7 +29,7 @@ void command_thread(au_sonar::Preprocessor& preprocessor) {
     zmq::socket_t socket(context, ZMQ_REP);
     socket.bind(ZMQ_COMMAND_SERVER);
 
-    while(1) {
+    while(keepRunning) {
       zmq::message_t request;
       //  Wait for next request from client
       socket.recv(&request);
@@ -70,8 +71,9 @@ int main() {
   }
 
   std::thread thread_A{command_thread, std::ref(preprocessor)};
+  thread_A.detach();
 
-  while(!exit_flag) {
+  while(keepRunning) {
     sonar_data.wait_and_process(process_sonar_data);
   }
 
