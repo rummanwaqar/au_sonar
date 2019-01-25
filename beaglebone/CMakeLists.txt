@@ -4,6 +4,19 @@ project(au_sonar_bbb)
 ## use this to globally use C++17 with in our project
 add_compile_options(-std=c++17)
 
+#########
+# Flags #
+#########
+
+# debug option
+option(DEBUG "Build with debug flags" 0)
+if(DEBUG)
+    message(WARNING "Building with debug flags")
+    set(CMAKE_BUILD_TYPE Debug)
+else()
+    message(STATUS "Building without debug flags")
+endif()
+
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7")
     message(STATUS "Building with ARM flags")
     set(CROSS_COMPILE_FLAGS "-mtune=cortex-a8 -march=armv7-a")
@@ -18,6 +31,8 @@ ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7")
 
 include(ExternalProject)
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/bin)
+
 # libzmq & cppzmq
 ExternalProject_Add(libzmq
     GIT_REPOSITORY https://github.com/zeromq/libzmq
@@ -68,24 +83,6 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS system log REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-
-#########
-# Flags #
-#########
-
-# debug option
-option(DEBUG "Build with debug flags" 0)
-if(DEBUG)
-    message(WARNING "Building with debug flags")
-    set(CMAKE_BUILD_TYPE Debug)
-else()
-    message(STATUS "Building without debug flags")
-endif()
-
-# get system information
-cmake_host_system_information(RESULT SYSTEM_HOSTNAME QUERY HOSTNAME)
-message(STATUS "HOSTNAME: ${SYSTEM_HOSTNAME}")
-set(BBB_HOSTNAME "beaglebone")
 
 #####################
 # Build Custom Code #
