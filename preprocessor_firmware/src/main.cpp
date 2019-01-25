@@ -25,12 +25,13 @@ void setup() {
   // Allow the communication interface to access the Filter
   commInterface.getFilterPointer(bandPassfilter);
 
-  Serial.println("$Teensy Initialized");
+  Serial1.println("$Teensy Initialized");
+  digitalWrite(BUILTIN_LED, LOW);
 }
 
 void loop() {
   // If there was a serial interupt with a valid serial string,
-  // parse said serail String
+  // parse said serial String
   if (commInterface.validIncommingSerialMessage()) {
     commInterface.parseMessage();
   }
@@ -39,4 +40,4 @@ void loop() {
   gainControl.runtime();
 }
 
-void serialEvent() { commInterface.checkSerial(); }
+void serialEvent1() { commInterface.checkSerial(); }
