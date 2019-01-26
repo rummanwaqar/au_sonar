@@ -3,8 +3,13 @@
 using namespace au_sonar;
 
 PruReader::PruReader(const std::string pru0_fname, const std::string pru1_fname,
-  SonarData& sonar_data) : pru0_fname_(pru0_fname), pru1_fname_(pru1_fname),
-  is_init_(false), pparams_(NULL), shared_ddr_(NULL), sonar_data_(sonar_data) {}
+                     SonarData &sonar_data)
+    : pru0_fname_(pru0_fname),
+      pru1_fname_(pru1_fname),
+      is_init_(false),
+      pparams_(NULL),
+      shared_ddr_(NULL),
+      sonar_data_(sonar_data) {}
 
 PruReader::~PruReader() {
   pparams_ = NULL;
@@ -16,26 +21,26 @@ PruReader::~PruReader() {
 }
 
 bool PruReader::init() {
-  if(is_init_) { // already initialized
+  if (is_init_) {  // already initialized
     LOG_WARNING << "PRU Reader is already initialized.";
     return false;
   }
 
   // initialize PRU and allocate memory
   prussdrv_init();
-  if(prussdrv_open(PRU_EVTOUT_1) != 0) {
+  if (prussdrv_open(PRU_EVTOUT_1) != 0) {
     LOG_ERROR << "Could not open PRU Event 1.";
     return false;
   }
   tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
-  if(prussdrv_pruintc_init(&pruss_intc_initdata) != 0) {
+  if (prussdrv_pruintc_init(&pruss_intc_initdata) != 0) {
     LOG_ERROR << "Failed to initialize PRU interrupt controller.";
     return false;
   }
 
   // get pointer into the shared PRU DRAM where PRU expects to share
   // params with PRUs and host CPU
-  if(prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void **)&pparams_) != 0) {
+  if (prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void **)&pparams_) != 0) {
     LOG_ERROR << "Failed to map the PRU memory.";
     return false;
   }
@@ -56,13 +61,13 @@ bool PruReader::init() {
   pparams_->ddr_len = shared_ddr_len;
 
   // load firmware
-  if(prussdrv_exec_program(0, pru0_fname_.c_str()) == 0) {
+  if (prussdrv_exec_program(0, pru0_fname_.c_str()) == 0) {
     LOG_DEBUG << "PRU 0 loaded.";
   } else {
     LOG_ERROR << "Error loading PRU 0 firmware.";
     return false;
   }
-  if(prussdrv_exec_program(1, pru1_fname_.c_str()) == 0) {
+  if (prussdrv_exec_program(1, pru1_fname_.c_str()) == 0) {
     LOG_DEBUG << "PRU 1 loaded.";
   } else {
     LOG_ERROR << "Error loading PRU 1 firmware.";
@@ -70,7 +75,7 @@ bool PruReader::init() {
   }
 
   // create a thread for io service to run on
-  io_thread_ = std::thread([&]{ run(); });
+  io_thread_ = std::thread([&] { run(); });
   io_thread_.detach();
 
   return true;
@@ -81,7 +86,7 @@ static inline float to_voltage(int adc_sample) {
 }
 
 void PruReader::run() {
-  while(1) {
+  while (1) {
     // wait for ping interrupt from PRU
     prussdrv_pru_wait_event(PRU_EVTOUT_1);
 

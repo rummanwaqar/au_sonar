@@ -1,12 +1,12 @@
-#include <iostream>
-#include <string>
-#include <csignal>
 #include <atomic>
+#include <csignal>
+#include <iostream>
 #include <memory>
+#include <string>
 
-#include <zmq.hpp>
-#include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
+#include <plog/Log.h>
+#include <zmq.hpp>
 
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
@@ -25,19 +25,22 @@ std::unique_ptr<zmq::socket_t> publisher;
 // zmq::socket_t* publisher;
 
 void signalHandler(int signum) {
-   LOG_INFO << "Interrupt signal (" << signum << ") received.";
-   keepRunning = false;
+  LOG_INFO << "Interrupt signal (" << signum << ") received.";
+  keepRunning = false;
 }
 
-void process_sonar_data(std::chrono::system_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
+void process_sonar_data(std::chrono::system_clock::time_point timestamp,
+                        au_sonar::PingInfo& info, au_sonar::PingData& data) {
   json output;
-  output["timestamp"] = std::chrono::duration_cast<std::chrono::milliseconds>
-    (timestamp.time_since_epoch()).count();
+  output["timestamp"] = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            timestamp.time_since_epoch())
+                            .count();
   output["data"] = data.to_json();
   output["info"] = info.to_json();
 
   std::string output_string = output.dump();
-  LOG_INFO << "Got synced data frame for transmission (" << output_string.size()/1024.0 << " kB)";
+  LOG_INFO << "Got synced data frame for transmission ("
+           << output_string.size() / 1024.0 << " kB)";
 
   // publish ping data
   zmq::message_t message(output_string.size());
@@ -45,45 +48,50 @@ void process_sonar_data(std::chrono::system_clock::time_point timestamp, au_sona
   publisher->send(message);
 }
 
-void command_thread(au_sonar::Preprocessor& preprocessor, const std::string server_addr) {
-    // setup zmq server for commands
-    zmq::socket_t socket(context, ZMQ_REP);
-    socket.bind(server_addr);
-    LOG_INFO << "Started ZMQ command server at " << server_addr;
+void command_thread(au_sonar::Preprocessor& preprocessor,
+                    const std::string server_addr) {
+  // setup zmq server for commands
+  zmq::socket_t socket(context, ZMQ_REP);
+  socket.bind(server_addr);
+  LOG_INFO << "Started ZMQ command server at " << server_addr;
 
-    while(keepRunning) {
-      zmq::message_t request;
-      //  Wait for next request from client
-      socket.recv(&request);
-      std::string command(static_cast<char*>(request.data()));
-      LOG_INFO << "Got command: " << command;
+  while (keepRunning) {
+    zmq::message_t request;
+    //  Wait for next request from client
+    socket.recv(&request);
+    std::string command(static_cast<char*>(request.data()));
+    LOG_INFO << "Got command: " << command;
 
-      // send command to preprocessor and wait for response
-      std::string response;
-      try {
-        response = preprocessor.write_command(command);
-      } catch (std::runtime_error& e) {
-        LOG_ERROR << e.what();
-        response = std::string("error: unable to write");
-      }
-      LOG_INFO << "Returned command response: " << response;
-
-      zmq::message_t reply(response.size());
-      std::memcpy(reply.data(), response.data(), response.size());
-      socket.send(reply);
+    // send command to preprocessor and wait for response
+    std::string response;
+    try {
+      response = preprocessor.write_command(command);
+    } catch (std::runtime_error& e) {
+      LOG_ERROR << e.what();
+      response = std::string("error: unable to write");
     }
+    LOG_INFO << "Returned command response: " << response;
+
+    zmq::message_t reply(response.size());
+    std::memcpy(reply.data(), response.data(), response.size());
+    socket.send(reply);
+  }
 }
 
 int main(int argc, char** argv) {
   // parse cli
   cxxopts::Options options("sonar_daq", "Sonar data acquisition software");
+  // clang-format off
   options.add_options()
-    ("pru0", "PRU0 firmware file", cxxopts::value<std::string>())
+    ("pru0", "PRU0 firmware file",cxxopts::value<std::string>())
     ("pru1", "PRU1 firmware file", cxxopts::value<std::string>())
     ("log", "Log file", cxxopts::value<std::string>()->default_value("log.txt"))
-    ("cmd_server", "Address for zmq command server", cxxopts::value<std::string>()->default_value(ZMQ_COMMAND_SERVER))
-    ("data_server", "Address for zmq data publisher", cxxopts::value<std::string>()->default_value(ZMQ_DATA_SERVER))
+    ("cmd_server", "Address for zmq command server",
+      cxxopts::value<std::string>()->default_value(ZMQ_COMMAND_SERVER))
+    ("data_server", "Address for zmq data publisher",
+      cxxopts::value<std::string>()->default_value(ZMQ_DATA_SERVER))
     ("d,debug", "Enable debugging logs");
+  // clang-format on
   auto arguments = options.parse(argc, argv);
   bool debug_flag;
   std::string pru0_fname, pru1_fname, log_fname, cmd_server, data_server;
@@ -94,7 +102,7 @@ int main(int argc, char** argv) {
     cmd_server = arguments["cmd_server"].as<std::string>();
     data_server = arguments["data_server"].as<std::string>();
     log_fname = arguments["log"].as<std::string>();
-  } catch(std::domain_error &e) {
+  } catch (std::domain_error& e) {
     std::cerr << options.help() << std::endl;
     exit(2);
   }
@@ -120,14 +128,14 @@ int main(int argc, char** argv) {
 
   // // init preprocessor
   au_sonar::Preprocessor preprocessor("/dev/ttyO4", std::ref(sonar_data));
-  if(!preprocessor.init()) {
+  if (!preprocessor.init()) {
     LOG_INFO << "Exiting program";
     return 2;
   }
 
   // init pru Reader
   au_sonar::PruReader pruReader(pru0_fname, pru1_fname, std::ref(sonar_data));
-  if(!pruReader.init()) {
+  if (!pruReader.init()) {
     LOG_INFO << "Exiting program";
     return 2;
   }
@@ -135,7 +143,7 @@ int main(int argc, char** argv) {
   std::thread thread_A{command_thread, std::ref(preprocessor), cmd_server};
   thread_A.detach();
 
-  while(keepRunning) {
+  while (keepRunning) {
     sonar_data.wait_and_process(process_sonar_data);
   }
 
