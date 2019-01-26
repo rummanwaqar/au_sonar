@@ -9,6 +9,7 @@
 
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
+#include "pru_reader.hpp"
 
 #define ZMQ_COMMAND_SERVER "tcp://*:5555"
 
@@ -20,7 +21,7 @@ void signalHandler(int signum) {
 }
 
 void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
-  std::cout << "got data" << std::endl;
+  LOG_INFO << "Got synced data frame for transmission";
 }
 
 void command_thread(au_sonar::Preprocessor& preprocessor) {
@@ -66,6 +67,13 @@ int main() {
   // init preprocessor
   au_sonar::Preprocessor preprocessor("/dev/ttyO4", std::ref(sonar_data));
   if(!preprocessor.init()) {
+    LOG_INFO << "Exiting program";
+    return 2;
+  }
+
+  // init pru Reader
+  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-read-data.bin", std::ref(sonar_data));
+  if(!pruReader.init()) {
     LOG_INFO << "Exiting program";
     return 2;
   }
