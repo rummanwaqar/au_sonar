@@ -76,14 +76,52 @@ bool PruReader::init() {
   return true;
 }
 
+static inline float to_voltage(int adc_sample) {
+  return (float(adc_sample) / 1024.0) * 2.0;
+}
+
 void PruReader::run() {
   while(1) {
     // wait for ping interrupt from PRU
     prussdrv_pru_wait_event(PRU_EVTOUT_1);
 
-    LOG_INFO << "got something";
+    // hold ping data for a full ping (automatically sets timestamp at creation)
+    PingData pingdata;
+
+    // get read write pointers
+    volatile uint32_t *read_pointer = shared_ddr_;
+    uint32_t *write_pointer_virtual =
+        static_cast<uint32_t *>(prussdrv_get_virt_addr(pparams_->shared_ptr));
+
+    while (read_pointer != write_pointer_virtual) {
+      // copy data to local memory
+      uint16_t data[4];
+      memcpy(data, (void *)read_pointer, 8);
+      /* hydrophone data is only the first 10 bits.
+       * channel 2 hydrophones data[2] and data[3] contain come data
+       * in MSBs that is used in PRUs and should be masked off */
+      data[2] &= 0x3ff;
+      data[3] &= 0x3ff;
+
+      AdcSample sample;
+      sample.a = to_voltage(data[0]);
+      sample.refa = to_voltage(data[1]);
+      sample.b = to_voltage(data[2]);
+      sample.refb = to_voltage(data[3]);
+
+      // append to ping vector
+      pingdata.data.push_back(sample);
+
+      // increment read pointer
+      read_pointer += (8 / sizeof(*read_pointer));
+    }
+    LOG_INFO << pingdata.to_string();
 
     // clear interrupt
     prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
   }
+}
+
+float to_voltage(const int16_t) {
+  return 0;
 }

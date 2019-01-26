@@ -35,6 +35,7 @@
 #include <plog/Log.h>
 
 #include "shared_header.h"
+#include "datatypes.hpp"
 
 namespace au_sonar {
   class PruReader {
