@@ -46,7 +46,7 @@ bool PruReader::init() {
   unsigned int physical_addr = prussdrv_get_phys_addr((void *)shared_ddr);
   LOG_INFO << shared_ddr_len / 1024 << "KB of shared DDR available.";
   LOG_INFO << "Physical (PRU-side) address: 0x" << std::hex << physical_addr;
-  char formatted_shared_addr[100]; 
+  char formatted_shared_addr[100];
   sprintf(formatted_shared_addr, "%p", shared_ddr);
   LOG_INFO << "Virtual (linux-side) address: " << formatted_shared_addr;
 
@@ -68,6 +68,14 @@ bool PruReader::init() {
     return false;
   }
 
+  // create a thread for io service to run on
+  io_thread_ = std::thread([&]{ run(); });
+  io_thread_.detach();
+
+  return true;
+}
+
+void PruReader::run() {
   while(1) {
     // wait for ping interrupt from PRU
     prussdrv_pru_wait_event(PRU_EVTOUT_1);
@@ -77,5 +85,4 @@ bool PruReader::init() {
     // clear interrupt
     prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
   }
-  return true;
 }

@@ -28,6 +28,7 @@
 #define _AU_SONAR_PRU_READER_H_
 
 #include <string>
+#include <thread>
 
 #include <pruss_intc_mapping.h>
 #include <prussdrv.h>
@@ -45,9 +46,11 @@ namespace au_sonar {
     bool init();
 
   private:
+    void run();
     const std::string pru0_fname_;
     const std::string pru1_fname_;
     bool is_init_;
+    std::thread io_thread_;
 
   }; // class PruReader
 } // namespace au_sonar
