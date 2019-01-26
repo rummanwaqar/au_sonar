@@ -13,5 +13,8 @@ fi
 echo "Setting up I/O"
 bash $DIR/setup_pins.sh
 
+# make log file
+LOG_FILE="sonar_$(date +"%F-%T").txt"
+
 # run daq program
-sudo $DIR/build/pru_read $DIR/pru_firmware/pru0-clock.bin $DIR/pru_firmware/pru1-read-data.bin
+$DIR/build/sonar_daq --pru0 $DIR/build/pru0-clock.bin --pru1 $DIR/build/pru1-read-data.bin --log $LOG_FILE --cmd_server tcp://127.0.0.1:6868 --data_server tcp://127.0.0.1:6969
