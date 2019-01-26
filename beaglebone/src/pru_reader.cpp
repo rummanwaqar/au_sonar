@@ -66,5 +66,14 @@ bool PruReader::init() {
     return false;
   }
 
+  while(1) {
+    // wait for ping interrupt from PRU
+    prussdrv_pru_wait_event(PRU_EVTOUT_1);
+
+    LOG_INFO << "got something";
+
+    // clear interrupt
+    prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+  }
   return true;
 }
