@@ -38,8 +38,8 @@ void process_sonar_data(std::chrono::system_clock::time_point timestamp, au_sona
   LOG_INFO << "Got synced data frame for transmission (" << output_string.size()/1024.0 << " kB)";
 
   // publish ping data
-  zmq::message_t message;
-  memcpy(message.data(), output_string.c_str(), output_string.size());
+  zmq::message_t message(output_string.size());
+  memcpy(message.data(), output_string.data(), output_string.size());
   publisher->send(message);
 }
 
