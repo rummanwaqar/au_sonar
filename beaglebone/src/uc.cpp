@@ -15,8 +15,11 @@
 using json = nlohmann::json;
 
 #define ZMQ_COMMAND_SERVER "tcp://*:5555"
+#define ZMQ_DATA_SERVER "tcp://*:5556"
 
 std::atomic<bool> keepRunning{true};
+zmq::context_t context(1);
+zmq::socket_t* publisher;
 
 void signalHandler(int signum) {
    LOG_INFO << "Interrupt signal (" << signum << ") received.";
@@ -29,14 +32,22 @@ void process_sonar_data(std::chrono::system_clock::time_point timestamp, au_sona
     (timestamp.time_since_epoch()).count();
   output["data"] = data.to_json();
   output["info"] = info.to_json();
-  LOG_INFO << "Got synced data frame for transmission (" << output.dump().size()/1024.0 << " kB)";
+
+  std::string output_string = output.dump();
+  LOG_INFO << "Got synced data frame for transmission (" << output_string.size()/1024.0 << " kB)";
+
+  // publish ping data
+  zmq::message_t message;
+  memcpy(message.data(), output_string.c_str(), output_string.size());
+  publisher->send(message);
 }
 
 void command_thread(au_sonar::Preprocessor& preprocessor) {
-    // setup zmq server
-    zmq::context_t context(1);
+    // setup zmq server for commands
     zmq::socket_t socket(context, ZMQ_REP);
     socket.bind(ZMQ_COMMAND_SERVER);
+
+    LOG_INFO << "Started ZMQ command server at " << ZMQ_COMMAND_SERVER << std::endl;
 
     while(keepRunning) {
       zmq::message_t request;
@@ -69,6 +80,11 @@ int main() {
   static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
   plog::init(plog::info, "log.txt").addAppender(&consoleAppender);
 
+  // start zmq data publisher
+  publisher = new zmq::socket_t(context, ZMQ_PUB);
+  publisher->bind(ZMQ_DATA_SERVER);
+  LOG_INFO << "Started ZMQ data publisher at " << ZMQ_DATA_SERVER << std::endl;
+
   // create sonar data object
   au_sonar::SonarData sonar_data;
 
@@ -93,5 +109,6 @@ int main() {
     sonar_data.wait_and_process(process_sonar_data);
   }
 
+  delete publisher;
   return 0;
 }
