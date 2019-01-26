@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <csignal>
 #include <atomic>
@@ -11,11 +12,12 @@
 #include "preprocessor.hpp"
 #include "pru_reader.hpp"
 
+#include "cxxopts.hpp"
 #include "json.hpp"
 using json = nlohmann::json;
 
-#define ZMQ_COMMAND_SERVER "tcp://*:5555"
-#define ZMQ_DATA_SERVER "tcp://*:5556"
+#define ZMQ_COMMAND_SERVER "tcp://127.0.0.1:1234"
+#define ZMQ_DATA_SERVER "tcp://127.0.0.1:1235"
 
 std::atomic<bool> keepRunning{true};
 zmq::context_t context(1);
@@ -43,12 +45,11 @@ void process_sonar_data(std::chrono::system_clock::time_point timestamp, au_sona
   publisher->send(message);
 }
 
-void command_thread(au_sonar::Preprocessor& preprocessor) {
+void command_thread(au_sonar::Preprocessor& preprocessor, const std::string server_addr) {
     // setup zmq server for commands
     zmq::socket_t socket(context, ZMQ_REP);
-    socket.bind(ZMQ_COMMAND_SERVER);
-
-    LOG_INFO << "Started ZMQ command server at " << ZMQ_COMMAND_SERVER;
+    socket.bind(server_addr);
+    LOG_INFO << "Started ZMQ command server at " << server_addr;
 
     while(keepRunning) {
       zmq::message_t request;
@@ -73,24 +74,51 @@ void command_thread(au_sonar::Preprocessor& preprocessor) {
     }
 }
 
-int main() {
+int main(int argc, char** argv) {
+  // parse cli
+  cxxopts::Options options("sonar_daq", "Sonar data acquisition software");
+  options.add_options()
+    ("pru0", "PRU0 firmware file", cxxopts::value<std::string>())
+    ("pru1", "PRU1 firmware file", cxxopts::value<std::string>())
+    ("log", "Log file", cxxopts::value<std::string>()->default_value("log.txt"))
+    ("cmd_server", "Address for zmq command server", cxxopts::value<std::string>()->default_value(ZMQ_COMMAND_SERVER))
+    ("data_server", "Address for zmq data publisher", cxxopts::value<std::string>()->default_value(ZMQ_DATA_SERVER))
+    ("d,debug", "Enable debugging logs");
+  auto arguments = options.parse(argc, argv);
+  bool debug_flag;
+  std::string pru0_fname, pru1_fname, log_fname, cmd_server, data_server;
+  try {
+    debug_flag = arguments["d"].as<bool>();
+    pru0_fname = arguments["pru0"].as<std::string>();
+    pru1_fname = arguments["pru1"].as<std::string>();
+    cmd_server = arguments["cmd_server"].as<std::string>();
+    data_server = arguments["data_server"].as<std::string>();
+    log_fname = arguments["log"].as<std::string>();
+  } catch(std::domain_error &e) {
+    std::cerr << options.help() << std::endl;
+    exit(2);
+  }
+
   // sigint
   signal(SIGINT, signalHandler);
 
   // logging
+  plog::Severity severity = plog::info;
+  if (debug_flag) {
+    severity = plog::debug;
+  }
   static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-  plog::init(plog::info, "log.txt").addAppender(&consoleAppender);
+  plog::init(severity, log_fname.c_str()).addAppender(&consoleAppender);
 
   // start zmq data publisher
   publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
-  // publisher = new zmq::socket_t(context, ZMQ_PUB);
-  publisher->bind(ZMQ_DATA_SERVER);
-  LOG_INFO << "Started ZMQ data publisher at " << ZMQ_DATA_SERVER;
+  publisher->bind(data_server);
+  LOG_INFO << "Started ZMQ data publisher at " << data_server;
 
   // create sonar data object
   au_sonar::SonarData sonar_data;
 
-  // init preprocessor
+  // // init preprocessor
   au_sonar::Preprocessor preprocessor("/dev/ttyO4", std::ref(sonar_data));
   if(!preprocessor.init()) {
     LOG_INFO << "Exiting program";
@@ -98,13 +126,13 @@ int main() {
   }
 
   // init pru Reader
-  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-read-data.bin", std::ref(sonar_data));
+  au_sonar::PruReader pruReader(pru0_fname, pru1_fname, std::ref(sonar_data));
   if(!pruReader.init()) {
     LOG_INFO << "Exiting program";
     return 2;
   }
 
-  std::thread thread_A{command_thread, std::ref(preprocessor)};
+  std::thread thread_A{command_thread, std::ref(preprocessor), cmd_server};
   thread_A.detach();
 
   while(keepRunning) {

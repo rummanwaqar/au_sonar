@@ -107,9 +107,9 @@ if(Boost_FOUND)
 endif()
 
 # build main executable
-add_executable(uc src/uc.cpp)
-add_dependencies(uc preprocessor pru_reader cppzmq)
-target_link_libraries(uc libzmq.so preprocessor pru_reader pthread)
+add_executable(sonar_daq src/main.cpp)
+add_dependencies(sonar_daq preprocessor pru_reader cppzmq)
+target_link_libraries(sonar_daq libzmq.so preprocessor pru_reader pthread)
 
 # build pru firmware
 set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
