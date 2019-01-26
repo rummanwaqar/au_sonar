@@ -135,34 +135,3 @@ if(TESTS)
 else()
     message(STATUS "Not building tests.")
 endif()
-
-# generate proto code for sonardata.proto
-# set(PROTO_FILE "proto/sonardata.proto")
-# find_package(Protobuf REQUIRED)
-# if(PROTOBUF_FOUND)
-#     message ("-- Protobuf found")
-# else()
-#     message (FATAL_ERROR "Cannot find Protobuf")
-# endif()
-# PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${PROTO_FILE})
-# message ("--   PROTO_SRCS = ${PROTO_SRCS}")
-# message ("--   PROTO_HDRS = ${PROTO_HDRS}")
-# PROTOBUF_GENERATE_PYTHON(PROTO_PY ${PROTO_FILE})
-# message ("--   PROTO_PY = ${PROTO_PY}")
-# add_custom_target(proto_py ALL DEPENDS ${PROTO_PY})
-#
-# # 0mq
-# find_package(cppzmq)
-#
-# # compile executable with protobuf
-# add_executable(protobuf_test src/protobuf_test.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-# target_include_directories(protobuf_test
-#     PUBLIC
-#     ${PROTOBUF_INCLUDE_DIRS}
-#     ${CMAKE_CURRENT_BINARY_DIR}
-# )
-# target_link_libraries(protobuf_test
-#     PUBLIC
-#     ${PROTOBUF_LIBRARIES}
-#     cppzmq
-# )

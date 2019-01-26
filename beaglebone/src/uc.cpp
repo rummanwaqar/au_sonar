@@ -11,6 +11,9 @@
 #include "preprocessor.hpp"
 #include "pru_reader.hpp"
 
+#include "json.hpp"
+using json = nlohmann::json;
+
 #define ZMQ_COMMAND_SERVER "tcp://*:5555"
 
 std::atomic<bool> keepRunning{true};
@@ -20,8 +23,13 @@ void signalHandler(int signum) {
    keepRunning = false;
 }
 
-void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
-  LOG_INFO << "Got synced data frame for transmission";
+void process_sonar_data(std::chrono::system_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
+  json output;
+  output["timestamp"] = std::chrono::duration_cast<std::chrono::milliseconds>
+    (timestamp.time_since_epoch()).count();
+  output["data"] = data.to_json();
+  output["info"] = info.to_json();
+  LOG_INFO << "Got synced data frame for transmission (" << output.dump().size()/1024.0 << " kB)";
 }
 
 void command_thread(au_sonar::Preprocessor& preprocessor) {
