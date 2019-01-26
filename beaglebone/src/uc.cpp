@@ -55,7 +55,7 @@ void command_thread(au_sonar::Preprocessor& preprocessor) {
       //  Wait for next request from client
       socket.recv(&request);
       std::string command(static_cast<char*>(request.data()));
-      LOG_DEBUG << "Got command: " << command;
+      LOG_INFO << "Got command: " << command;
 
       // send command to preprocessor and wait for response
       std::string response;
@@ -65,7 +65,7 @@ void command_thread(au_sonar::Preprocessor& preprocessor) {
         LOG_ERROR << e.what();
         response = std::string("error: unable to write");
       }
-      LOG_DEBUG << "Returned command response: " << response;
+      LOG_INFO << "Returned command response: " << response;
 
       zmq::message_t reply(response.size());
       std::memcpy(reply.data(), response.data(), response.size());
