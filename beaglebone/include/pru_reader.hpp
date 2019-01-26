@@ -47,10 +47,15 @@ namespace au_sonar {
 
   private:
     void run();
+
     const std::string pru0_fname_;
     const std::string pru1_fname_;
     bool is_init_;
     std::thread io_thread_;
+
+    volatile uint32_t* shared_ddr_;
+    volatile pruparams_t* pparams_;
+
 
   }; // class PruReader
 } // namespace au_sonar

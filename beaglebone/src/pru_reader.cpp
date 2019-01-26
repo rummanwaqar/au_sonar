@@ -3,9 +3,12 @@
 using namespace au_sonar;
 
 PruReader::PruReader(const std::string pru0_fname, const std::string pru1_fname)
-  : pru0_fname_(pru0_fname), pru1_fname_(pru1_fname), is_init_(false) {}
+  : pru0_fname_(pru0_fname), pru1_fname_(pru1_fname), is_init_(false),
+    pparams_(NULL), shared_ddr_(NULL) {}
 
 PruReader::~PruReader() {
+  pparams_ = NULL;
+  shared_ddr_ = NULL;
   prussdrv_pru_disable(0);
   prussdrv_pru_disable(1);
   prussdrv_exit();
@@ -32,27 +35,25 @@ bool PruReader::init() {
 
   // get pointer into the shared PRU DRAM where PRU expects to share
   // params with PRUs and host CPU
-  volatile pruparams_t *pparams = NULL;
-  if(prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void **)&pparams) != 0) {
+  if(prussdrv_map_prumem(PRUSS0_SHARED_DATARAM, (void **)&pparams_) != 0) {
     LOG_ERROR << "Failed to map the PRU memory.";
     return false;
   }
 
   // pointer into the DDR RAM mapped by the uio_pruss kernel module. This
   // is host memory shared by to the PRU over OCP
-  volatile uint32_t *shared_ddr = NULL;
-  prussdrv_map_extmem((void **)&shared_ddr);
+  prussdrv_map_extmem((void **)&shared_ddr_);
   unsigned int shared_ddr_len = prussdrv_extmem_size();
-  unsigned int physical_addr = prussdrv_get_phys_addr((void *)shared_ddr);
+  unsigned int physical_addr = prussdrv_get_phys_addr((void *)shared_ddr_);
   LOG_INFO << shared_ddr_len / 1024 << "KB of shared DDR available.";
   LOG_INFO << "Physical (PRU-side) address: 0x" << std::hex << physical_addr;
   char formatted_shared_addr[100];
-  sprintf(formatted_shared_addr, "%p", shared_ddr);
+  sprintf(formatted_shared_addr, "%p", shared_ddr_);
   LOG_INFO << "Virtual (linux-side) address: " << formatted_shared_addr;
 
   // pass params to PRU
-  pparams->physical_addr = physical_addr;
-  pparams->ddr_len = shared_ddr_len;
+  pparams_->physical_addr = physical_addr;
+  pparams_->ddr_len = shared_ddr_len;
 
   // load firmware
   if(prussdrv_exec_program(0, pru0_fname_.c_str()) == 0) {
