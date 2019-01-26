@@ -9,6 +9,7 @@
 
 #include "datatypes.hpp"
 #include "preprocessor.hpp"
+#include "pru_reader.hpp"
 
 #define ZMQ_COMMAND_SERVER "tcp://*:5555"
 
@@ -66,6 +67,13 @@ int main() {
   // init preprocessor
   au_sonar::Preprocessor preprocessor("/dev/ttyO4", std::ref(sonar_data));
   if(!preprocessor.init()) {
+    LOG_INFO << "Exiting program";
+    return 2;
+  }
+
+  // init pru Reader
+  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-clock.bin");
+  if(!pruReader.init()) {
     LOG_INFO << "Exiting program";
     return 2;
   }

@@ -96,11 +96,16 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(include)
 
 ### OLD PRU stuff
-include(cmake/FindMsgPack.cmake)
-add_executable(pru_read src/pru_read.cpp)
-add_dependencies(pru_read prussdrv)
-target_link_libraries(pru_read prussdrv.so libzmq.so ${MSGPACK_LIBRARIES})
+# include(cmake/FindMsgPack.cmake)
+# add_executable(pru_read src/pru_read.cpp)
+# add_dependencies(pru_read prussdrv)
+# target_link_libraries(pru_read prussdrv.so libzmq.so ${MSGPACK_LIBRARIES})
 #############
+
+# build pru_reader
+add_library(pru_reader src/pru_reader.cpp)
+add_dependencies(pru_reader prussdrv)
+target_link_libraries(pru_reader prussdrv.so pthread)
 
 # build preprocessor
 if(Boost_FOUND)
@@ -110,8 +115,8 @@ endif()
 
 # build main executable
 add_executable(uc src/uc.cpp)
-add_dependencies(uc preprocessor cppzmq)
-target_link_libraries(uc libzmq.so preprocessor pthread)
+add_dependencies(uc preprocessor pru_reader cppzmq)
+target_link_libraries(uc libzmq.so preprocessor pru_reader pthread)
 
 # build pru firmware
 set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
