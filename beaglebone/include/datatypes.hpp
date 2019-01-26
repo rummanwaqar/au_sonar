@@ -15,7 +15,9 @@
 #include <algorithm>
 #include <mutex>
 #include <condition_variable>
+#include "json.hpp"
 
+using json = nlohmann::json;
 using namespace std::chrono_literals;
 
 namespace au_sonar {
@@ -24,10 +26,10 @@ namespace au_sonar {
    */
   struct DataWithTime {
     // time when object is made
-    std::chrono::high_resolution_clock::time_point timestamp;
+    std::chrono::system_clock::time_point timestamp;
 
     // initialize with current time
-    DataWithTime() : timestamp(std::chrono::high_resolution_clock::now()){}
+    DataWithTime() : timestamp(std::chrono::system_clock::now()){}
 
     // return object as string for debugging
     virtual std::string to_string() {
@@ -86,6 +88,11 @@ namespace au_sonar {
       ostream << "}";
       return ostream.str();
     }
+
+    // return data as a json dictionary
+    json to_json() {
+      return json(data);
+    }
   };
 
   /*
@@ -96,6 +103,10 @@ namespace au_sonar {
     float refa;
     float b;
     float refb;
+
+    json to_json() { // 17 bytes
+      return json({a, refa, b, refb});
+    }
   };
 
   /*
@@ -111,6 +122,15 @@ namespace au_sonar {
       ostream << "Ping Data @ " << DataWithTime::to_string()
               << " with " << data.size() << " samples.";
       return ostream.str();
+    }
+
+    // return data as json (list of lists)
+    json to_json() {
+      json j;
+      for (auto& s : data) {
+        j.push_back(s.to_json());
+      }
+      return j;
     }
   };
 
@@ -152,7 +172,7 @@ namespace au_sonar {
     }
 
     // wait for data to be available and then pass it to callback
-    void wait_and_process(std::function<void(std::chrono::high_resolution_clock::time_point timestamp, PingInfo& info, PingData& data)> func) {
+    void wait_and_process(std::function<void(std::chrono::system_clock::time_point timestamp, PingInfo& info, PingData& data)> func) {
       std::unique_lock<std::mutex> lock(mux_);
       // wait until full data object ready
       if(convar_.wait_for(lock, std::chrono::milliseconds(500)) != std::cv_status::timeout) {
