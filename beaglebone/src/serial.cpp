@@ -29,7 +29,7 @@ bool Serial::init() {
   async_read();
   // create a thread for io service to run on
   io_thread_ = std::thread([&]{ io_service_.run(); });
-  LOG_ERROR << "Serial port open: " << port_;
+  LOG_INFO << "Serial port open: " << port_;
   return true;
 }
 
