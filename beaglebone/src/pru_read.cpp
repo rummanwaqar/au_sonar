@@ -35,8 +35,8 @@
 
 #include "shared_header.h"
 
-//#define SERVER_ADDRESS "tcp://127.0.0.1:9999"
-#define SERVER_ADDRESS "tcp://10.42.43.125:9999"
+#define SERVER_ADDRESS "tcp://127.0.0.1:9999"
+// #define SERVER_ADDRESS "tcp://10.42.43.125:9999"
 
 static int running = 1;
 
