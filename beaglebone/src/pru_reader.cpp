@@ -45,8 +45,10 @@ bool PruReader::init() {
   unsigned int shared_ddr_len = prussdrv_extmem_size();
   unsigned int physical_addr = prussdrv_get_phys_addr((void *)shared_ddr);
   LOG_INFO << shared_ddr_len / 1024 << "KB of shared DDR available.";
-  LOG_INFO << "Physical (PRU-side) address: " << std::hex << physical_addr;
-  LOG_INFO << "Virtual (linux-side) address: " << std::hex << shared_ddr;
+  LOG_INFO << "Physical (PRU-side) address: 0x" << std::hex << physical_addr;
+  char formatted_shared_addr[100]; 
+  sprintf(formatted_shared_addr, "%p", shared_ddr);
+  LOG_INFO << "Virtual (linux-side) address: " << formatted_shared_addr;
 
   // pass params to PRU
   pparams->physical_addr = physical_addr;

@@ -72,7 +72,7 @@ int main() {
   }
 
   // init pru Reader
-  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-clock.bin");
+  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-read-data.bin");
   if(!pruReader.init()) {
     LOG_INFO << "Exiting program";
     return 2;
