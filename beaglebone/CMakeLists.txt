@@ -95,13 +95,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 #####################
 include_directories(include)
 
-### OLD PRU stuff
-# include(cmake/FindMsgPack.cmake)
-# add_executable(pru_read src/pru_read.cpp)
-# add_dependencies(pru_read prussdrv)
-# target_link_libraries(pru_read prussdrv.so libzmq.so ${MSGPACK_LIBRARIES})
-#############
-
 # build pru_reader
 add_library(pru_reader src/pru_reader.cpp)
 add_dependencies(pru_reader prussdrv)
