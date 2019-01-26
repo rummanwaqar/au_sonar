@@ -1,7 +1,7 @@
-#include <iostream>
 #include <string>
 #include <csignal>
 #include <atomic>
+#include <memory>
 
 #include <zmq.hpp>
 #include <plog/Log.h>
@@ -19,7 +19,8 @@ using json = nlohmann::json;
 
 std::atomic<bool> keepRunning{true};
 zmq::context_t context(1);
-zmq::socket_t* publisher;
+std::unique_ptr<zmq::socket_t> publisher;
+// zmq::socket_t* publisher;
 
 void signalHandler(int signum) {
    LOG_INFO << "Interrupt signal (" << signum << ") received.";
@@ -47,7 +48,7 @@ void command_thread(au_sonar::Preprocessor& preprocessor) {
     zmq::socket_t socket(context, ZMQ_REP);
     socket.bind(ZMQ_COMMAND_SERVER);
 
-    LOG_INFO << "Started ZMQ command server at " << ZMQ_COMMAND_SERVER << std::endl;
+    LOG_INFO << "Started ZMQ command server at " << ZMQ_COMMAND_SERVER;
 
     while(keepRunning) {
       zmq::message_t request;
@@ -81,9 +82,10 @@ int main() {
   plog::init(plog::info, "log.txt").addAppender(&consoleAppender);
 
   // start zmq data publisher
-  publisher = new zmq::socket_t(context, ZMQ_PUB);
+  publisher = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
+  // publisher = new zmq::socket_t(context, ZMQ_PUB);
   publisher->bind(ZMQ_DATA_SERVER);
-  LOG_INFO << "Started ZMQ data publisher at " << ZMQ_DATA_SERVER << std::endl;
+  LOG_INFO << "Started ZMQ data publisher at " << ZMQ_DATA_SERVER;
 
   // create sonar data object
   au_sonar::SonarData sonar_data;
@@ -109,6 +111,5 @@ int main() {
     sonar_data.wait_and_process(process_sonar_data);
   }
 
-  delete publisher;
   return 0;
 }
