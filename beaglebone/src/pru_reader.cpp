@@ -124,7 +124,3 @@ void PruReader::run() {
     prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
   }
 }
-
-float to_voltage(const int16_t) {
-  return 0;
-}
