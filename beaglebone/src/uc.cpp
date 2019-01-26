@@ -21,7 +21,7 @@ void signalHandler(int signum) {
 }
 
 void process_sonar_data(std::chrono::high_resolution_clock::time_point timestamp, au_sonar::PingInfo& info, au_sonar::PingData& data) {
-  std::cout << "got data" << std::endl;
+  LOG_INFO << "Got synced data frame for transmission";
 }
 
 void command_thread(au_sonar::Preprocessor& preprocessor) {
@@ -72,7 +72,7 @@ int main() {
   }
 
   // init pru Reader
-  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-read-data.bin");
+  au_sonar::PruReader pruReader("pru0-clock.bin", "pru1-read-data.bin", std::ref(sonar_data));
   if(!pruReader.init()) {
     LOG_INFO << "Exiting program";
     return 2;

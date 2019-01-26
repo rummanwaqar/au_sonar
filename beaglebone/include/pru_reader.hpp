@@ -40,7 +40,8 @@
 namespace au_sonar {
   class PruReader {
   public:
-    PruReader(const std::string pru0_fname, const std::string pru1_fname);
+    PruReader(const std::string pru0_fname, const std::string pru1_fname,
+      SonarData& sonar_data);
 
     ~PruReader();
 
@@ -56,6 +57,8 @@ namespace au_sonar {
 
     volatile uint32_t* shared_ddr_;
     volatile pruparams_t* pparams_;
+
+    SonarData& sonar_data_; // sonar data reference. manages sync between sonar info and data
 
 
   }; // class PruReader

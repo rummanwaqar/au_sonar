@@ -2,9 +2,9 @@
 
 using namespace au_sonar;
 
-PruReader::PruReader(const std::string pru0_fname, const std::string pru1_fname)
-  : pru0_fname_(pru0_fname), pru1_fname_(pru1_fname), is_init_(false),
-    pparams_(NULL), shared_ddr_(NULL) {}
+PruReader::PruReader(const std::string pru0_fname, const std::string pru1_fname,
+  SonarData& sonar_data) : pru0_fname_(pru0_fname), pru1_fname_(pru1_fname),
+  is_init_(false), pparams_(NULL), shared_ddr_(NULL), sonar_data_(sonar_data) {}
 
 PruReader::~PruReader() {
   pparams_ = NULL;
@@ -116,6 +116,9 @@ void PruReader::run() {
       read_pointer += (8 / sizeof(*read_pointer));
     }
     LOG_INFO << pingdata.to_string();
+
+    // pass data to sonar data object for syncronization with serial data
+    sonar_data_.add_data(std::move(pingdata));
 
     // clear interrupt
     prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
