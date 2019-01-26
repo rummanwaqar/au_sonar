@@ -77,7 +77,7 @@ bool PruReader::init() {
 }
 
 static inline float to_voltage(int adc_sample) {
-  return (float(adc_sample) / 1024.0) * 2.0;
+  return (float(adc_sample) / 1023.0) * 2.0;
 }
 
 void PruReader::run() {
