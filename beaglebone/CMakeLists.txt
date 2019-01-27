@@ -37,11 +37,13 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/bin)
 ExternalProject_Add(libzmq
     GIT_REPOSITORY https://github.com/zeromq/libzmq
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_TESTS=OFF
+    UPDATE_DISCONNECTED 1
 )
 ExternalProject_Add(cppzmq
     GIT_REPOSITORY https://github.com/zeromq/cppzmq
     DEPENDS libzmq
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DCPPZMQ_BUILD_TESTS=OFF
+    UPDATE_DISCONNECTED 1
 )
 
 # prussdrv
@@ -51,6 +53,7 @@ ExternalProject_Add(pruss_download
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   ""
+    UPDATE_DISCONNECTED 1
 )
 set(PRUSSDRV_DIR "${CMAKE_CURRENT_BINARY_DIR}/pruss_download/src/pruss_download/pru_sw/app_loader")
 set(PRUSSDRV_LIBS "${PRUSSDRV_DIR}/lib/libprussdrv.a" "${PRUSSDRV_DIR}/lib/libprussdrv.so")
@@ -83,8 +86,31 @@ ExternalProject_Add(plog
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   ""
+    UPDATE_DISCONNECTED 1
 )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/plog/src/plog/include)
+
+# json
+ExternalProject_Add(json
+    GIT_REPOSITORY    https://github.com/nlohmann/json
+    PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/json
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    UPDATE_DISCONNECTED 1
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/json/src/json/single_include/nlohmann)
+
+# cxxopts
+ExternalProject_Add(cxxopts
+    GIT_REPOSITORY    https://github.com/jarro2783/cxxopts
+    PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/cxxopts
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    UPDATE_DISCONNECTED 1
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/cxxopts/src/cxxopts/include)
 
 # boost
 find_package(Boost COMPONENTS system REQUIRED)
@@ -97,19 +123,19 @@ include_directories(include)
 
 # build pru_reader
 add_library(pru_reader src/pru_reader.cpp)
-add_dependencies(pru_reader prussdrv plog)
+add_dependencies(pru_reader prussdrv plog json)
 target_link_libraries(pru_reader prussdrv.so pthread)
 
 # build preprocessor
 if(Boost_FOUND)
   add_library(preprocessor src/serial.cpp src/preprocessor.cpp)
-  add_dependencies(preprocessor plog)
+  add_dependencies(preprocessor plog json)
   target_link_libraries(preprocessor ${Boost_LIBRARIES})
 endif()
 
 # build main executable
 add_executable(sonar_daq src/main.cpp)
-add_dependencies(sonar_daq preprocessor pru_reader cppzmq plog)
+add_dependencies(sonar_daq preprocessor pru_reader cppzmq plog json cxxopts)
 target_link_libraries(sonar_daq libzmq.so preprocessor pru_reader pthread)
 
 # build pru firmware
