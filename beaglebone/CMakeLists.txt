@@ -36,11 +36,13 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/bin)
 # libzmq & cppzmq
 ExternalProject_Add(libzmq
     GIT_REPOSITORY https://github.com/zeromq/libzmq
+    GIT_TAG v4.3.1
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_TESTS=OFF
     UPDATE_DISCONNECTED 1
 )
 ExternalProject_Add(cppzmq
     GIT_REPOSITORY https://github.com/zeromq/cppzmq
+    GIT_TAG v4.3.0
     DEPENDS libzmq
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DCPPZMQ_BUILD_TESTS=OFF
     UPDATE_DISCONNECTED 1
@@ -82,6 +84,7 @@ link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 # plog
 ExternalProject_Add(plog
     GIT_REPOSITORY    https://github.com/SergiusTheBest/plog
+    GIT_TAG           1.1.4
     PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/plog
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
@@ -93,6 +96,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/plog/src/plog/include)
 # json
 ExternalProject_Add(json
     GIT_REPOSITORY    https://github.com/nlohmann/json
+    GIT_TAG           v3.5.0
     PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/json
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
@@ -104,6 +108,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/json/src/json/single_include/nlo
 # cxxopts
 ExternalProject_Add(cxxopts
     GIT_REPOSITORY    https://github.com/jarro2783/cxxopts
+    GIT_TAG           v2.1.2
     PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/cxxopts
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
