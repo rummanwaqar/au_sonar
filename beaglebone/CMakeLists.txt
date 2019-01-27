@@ -39,6 +39,9 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/libzmq-prefix)
         GIT_REPOSITORY https://github.com/zeromq/libzmq
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_TESTS=OFF
     )
+    message(STATUS "Building zmq")
+else()
+    message(STATUS "Not building zmq")
 endif()
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/cppzmq-prefix)
 ExternalProject_Add(cppzmq
@@ -91,6 +94,9 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/plog)
         BUILD_COMMAND     ""
         INSTALL_COMMAND   ""
     )
+    set(Plog_FOUND)
+else()
+    set(Plog_FOUND)
 endif()
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/plog/src/plog/include)
 
@@ -103,22 +109,24 @@ include_directories(${Boost_INCLUDE_DIRS})
 #####################
 include_directories(include)
 
-# build pru_reader
-add_library(pru_reader src/pru_reader.cpp)
-add_dependencies(pru_reader prussdrv plog)
-target_link_libraries(pru_reader prussdrv.so pthread)
+if(Plog_FOUND)
+    # build pru_reader
+    add_library(pru_reader src/pru_reader.cpp)
+    add_dependencies(pru_reader prussdrv plog)
+    target_link_libraries(pru_reader prussdrv.so pthread)
 
-# build preprocessor
-if(Boost_FOUND)
-  add_library(preprocessor src/serial.cpp src/preprocessor.cpp)
-  add_dependencies(preprocessor plog)
-  target_link_libraries(preprocessor ${Boost_LIBRARIES})
+    # build preprocessor
+    if(Boost_FOUND)
+      add_library(preprocessor src/serial.cpp src/preprocessor.cpp)
+      add_dependencies(preprocessor plog)
+      target_link_libraries(preprocessor ${Boost_LIBRARIES})
+    endif()
+
+    # build main executable
+    add_executable(sonar_daq src/main.cpp)
+    add_dependencies(sonar_daq preprocessor pru_reader cppzmq plog)
+    target_link_libraries(sonar_daq libzmq.so preprocessor pru_reader pthread)
 endif()
-
-# build main executable
-add_executable(sonar_daq src/main.cpp)
-add_dependencies(sonar_daq preprocessor pru_reader cppzmq plog)
-target_link_libraries(sonar_daq libzmq.so preprocessor pru_reader pthread)
 
 # build pru firmware
 set(PRU_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/pru_firmware")
