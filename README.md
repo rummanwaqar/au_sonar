@@ -14,7 +14,6 @@ mkdir build && cd $_
 cmake [-DTESTS=0/1] [-DDEBUG=0/1] ..
 make
 ```
-*Please note that the Beaglebone specific code only compiles on a Beaglebone. It will exit cleanly without compiling on any other system.*
 
 #### ROS Based code
 Compile with `catkin_make`
