@@ -436,10 +436,10 @@ void CommInterface::prepareTransmission(void) {
   if ((variableIndex == 13) || (variableIndex == 14) || (variableIndex == 16) ||
       (variableIndex == 1)) {
     Serial1.println("$" + String(variables[variableIndex]) + " " +
-                   String(output_int));
+                    String(output_int));
   } else {
     Serial1.println("$" + String(variables[variableIndex]) + " " +
-                   String(output_float));
+                    String(output_float));
   }
 
   Serial1.flush();
