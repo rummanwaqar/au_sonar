@@ -4,7 +4,7 @@ The sonar system is divided into two parts:
 * Sonar DAQ system (on Beaglebone)
 * Sonar processing system (on TX2)
 
-The systems communicate using ZMQ; Sonar DAQ runs a command server to forward commands to preprocessor. It also publishes all serial data over a ZMQ publisher.
+The systems communicate using ZMQ; Sonar DAQ runs a ZMQ command server (port 6868) to forward commands to preprocessor. It also publishes all serial data over a ZMQ publisher (port 6969).
 
 ## Building the code
 
