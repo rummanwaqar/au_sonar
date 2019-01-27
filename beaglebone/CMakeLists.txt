@@ -34,24 +34,30 @@ set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/bin)
 
 # libzmq & cppzmq
-ExternalProject_Add(libzmq
-    GIT_REPOSITORY https://github.com/zeromq/libzmq
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_TESTS=OFF
-)
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/libzmq-prefix)
+    ExternalProject_Add(libzmq
+        GIT_REPOSITORY https://github.com/zeromq/libzmq
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DBUILD_TESTS=OFF
+    )
+endif()
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/cppzmq-prefix)
 ExternalProject_Add(cppzmq
     GIT_REPOSITORY https://github.com/zeromq/cppzmq
     DEPENDS libzmq
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DCPPZMQ_BUILD_TESTS=OFF
 )
+endif()
 
 # prussdrv
-ExternalProject_Add(pruss_download
-    GIT_REPOSITORY    https://github.com/beagleboard/am335x_pru_package
-    PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/pruss_download
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND     ""
-    INSTALL_COMMAND   ""
-)
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/pruss_download)
+    ExternalProject_Add(pruss_download
+        GIT_REPOSITORY    https://github.com/beagleboard/am335x_pru_package
+        PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/pruss_download
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+    )
+endif()
 set(PRUSSDRV_DIR "${CMAKE_CURRENT_BINARY_DIR}/pruss_download/src/pruss_download/pru_sw/app_loader")
 set(PRUSSDRV_LIBS "${PRUSSDRV_DIR}/lib/libprussdrv.a" "${PRUSSDRV_DIR}/lib/libprussdrv.so")
 add_custom_command(OUTPUT ${PRUSSDRV_LIBS}
@@ -77,13 +83,15 @@ include_directories(${EXTERNAL_INSTALL_LOCATION}/include )
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
 # plog
-ExternalProject_Add(plog
-    GIT_REPOSITORY    https://github.com/SergiusTheBest/plog
-    PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/plog
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND     ""
-    INSTALL_COMMAND   ""
-)
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/plog)
+    ExternalProject_Add(plog
+        GIT_REPOSITORY    https://github.com/SergiusTheBest/plog
+        PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/plog
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+    )
+endif()
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/plog/src/plog/include)
 
 # boost
@@ -97,18 +105,19 @@ include_directories(include)
 
 # build pru_reader
 add_library(pru_reader src/pru_reader.cpp)
-add_dependencies(pru_reader prussdrv)
+add_dependencies(pru_reader prussdrv plog)
 target_link_libraries(pru_reader prussdrv.so pthread)
 
 # build preprocessor
 if(Boost_FOUND)
   add_library(preprocessor src/serial.cpp src/preprocessor.cpp)
+  add_dependencies(preprocessor plog)
   target_link_libraries(preprocessor ${Boost_LIBRARIES})
 endif()
 
 # build main executable
 add_executable(sonar_daq src/main.cpp)
-add_dependencies(sonar_daq preprocessor pru_reader cppzmq)
+add_dependencies(sonar_daq preprocessor pru_reader cppzmq plog)
 target_link_libraries(sonar_daq libzmq.so preprocessor pru_reader pthread)
 
 # build pru firmware
