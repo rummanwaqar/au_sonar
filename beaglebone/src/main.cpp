@@ -16,8 +16,8 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-const std::string ZMQ_COMMAND_SERVER "tcp://127.0.0.1:1234"
-const std::string ZMQ_DATA_SERVER "tcp://127.0.0.1:1235"
+const std::string ZMQ_COMMAND_SERVER = "tcp://127.0.0.1:1234";
+const std::string ZMQ_DATA_SERVER = "tcp://127.0.0.1:1235";
 
 std::atomic<bool> keepRunning{true};
 zmq::context_t context(1);
