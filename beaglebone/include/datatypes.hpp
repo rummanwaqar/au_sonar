@@ -43,7 +43,7 @@ struct DataWithTime {
 /*
  * data structure to store serial response data
  */
-struct SerialResponse {
+class SerialResponse {
  public:
   // add ping adc data
   void add_data(std::string&& data) {
@@ -138,7 +138,7 @@ struct PingData : DataWithTime {
  * full sonar data (status + adc values)
  * manages merging + reading combined value
  */
-struct SonarData : DataWithTime {
+class SonarData : DataWithTime {
  public:
   PingInfo info;
   PingData adcData;
