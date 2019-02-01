@@ -1,0 +1,18 @@
+<launch>
+
+    <arg name="freq" default="27.0" />
+    <arg name="log_dir" default="~/logs/" />
+
+    <node
+            pkg="au_sonar"
+            type="sonar_hardware.py"
+            name="sonar_hardware"
+            output="screen">
+
+        <param name="freq" value="$(arg freq)" />
+        <param name="log_dir" value="$(arg log_dir)" />
+        <param name="data_port" value="tcp://10.42.43.125:6969" />
+        <param name="cmd_port" value="tcp://10.42.43.125:6868" />
+        <param name="params_file" value="$(find au_sonar)/params/preprocessor.yaml" />
+    </node>
+</launch>

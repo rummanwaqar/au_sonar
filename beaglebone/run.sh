@@ -17,4 +17,4 @@ bash $DIR/setup_pins.sh
 LOG_FILE="sonar_$(date +"%F-%T").txt"
 
 # run daq program
-$DIR/build/sonar_daq --pru0 $DIR/build/pru0-clock.bin --pru1 $DIR/build/pru1-read-data.bin --log $LOG_FILE --cmd_server tcp://127.0.0.1:6868 --data_server tcp://127.0.0.1:6969
+$DIR/build/sonar_daq --pru0 $DIR/build/pru0-clock.bin --pru1 $DIR/build/pru1-read-data.bin --log $LOG_FILE --cmd_server tcp://10.42.43.125:6868 --data_server tcp://10.42.43.125:6969
