@@ -61,8 +61,3 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
-
-# Build the sonar_sim node
-add_executable(sonar_sim src/sonar_sim_node.cpp)
-add_dependencies(sonar_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(sonar_sim ${catkin_LIBRARIES})

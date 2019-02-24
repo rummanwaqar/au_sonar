@@ -1,22 +1,37 @@
 <launch>
-    <arg name="a_x" default="9"/>
-    <arg name="a_y" default="7.45"/>
-    <arg name="b_x" default="14" />
-    <arg name="b_y" default="10" />
+    <arg name="sampling_freq" default="1e6"/>
+    <arg name="pinger_freq" default="27e3"/>
+    <arg name="noise_stdev" default="15"/>
+    <arg name="x" default="23"/>
+    <arg name="y" default="-23.6" />
+    <arg name="rate" default="1" />
 
+    <!--simulator-->
     <node
         pkg="au_sonar"
-        type="sonar_sim"
-        name="sonar"
+        type="sonar_sim.py"
+        name="sonar_sim"
         output="screen"
         respawn="true"
     >
-        <param name="a_x" type="double" value="$(arg a_x)" />
-        <param name="a_y" type="double" value="$(arg a_y)" />
-        <param name="b_x" type="double" value="$(arg b_x)" />
-        <param name="b_y" type="double" value="$(arg b_y)" />
-        <param name="processing_time" type="double" value="2000" />
-        <param name="pose_topic" type="string" value="/dynamics/state" />
-        <param name="noise" type="double" value="1.0" /> <!-- +/- noise in degrees -->
+        <param name="sampling_freq" type="double" value="$(arg sampling_freq)" />
+        <param name="pinger_freq" type="double" value="$(arg pinger_freq)" />
+        <param name="noise_stdev" type="double" value="$(arg noise_stdev)" />
+        <param name="x" type="double" value="$(arg x)" />
+        <param name="y" type="double" value="$(arg y)" />
+        <param name="rate" type="double" value="$(arg rate)" />
+        <param name="data_port" type="string" value="tcp://127.0.0.1:6969" />
+    </node>
+
+    <!--sonar node-->
+    <node
+        pkg="au_sonar"
+        type="sonar_hardware.py"
+        name="sonar_hardware"
+        output="screen"
+    >
+        <param name="freq" value="$(arg pinger_freq)" />
+        <param name="data_port" value="tcp://127.0.0.1:6969" />
+        <param name="params_file" value="$(find au_sonar)/params/preprocessor.yaml" />
     </node>
 </launch>

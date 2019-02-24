@@ -32,6 +32,9 @@ Run `beaglebone/run.sh`
 #### ROS node
 Run `roslaunch au_sonar sonar_node.launch freq:=<target freq in Khz>`
 
+#### Simulator
+Run `roslaunch au_sonar sonar_sim.launch`
+
 ## Documentation
 * [Sonar Simulator](docs/simulator.md)
 * [Wiring Guide](docs/wiring.md)
