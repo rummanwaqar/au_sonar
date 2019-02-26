@@ -24,23 +24,11 @@ catkin_python_setup()
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
-add_action_files(
-    DIRECTORY action
-    FILES
-    Sonar.action
-)
-
-add_service_files(
-    FILES
-    Triangulate.srv
-)
-
-generate_messages(
-    DEPENDENCIES
-    actionlib_msgs
-    std_msgs
-    geometry_msgs
-)
+#generate_messages(
+#    DEPENDENCIES
+#    std_msgs
+#    geometry_msgs
+#)
 
 ###################################
 ## catkin specific configuration ##

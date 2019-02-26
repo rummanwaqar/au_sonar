@@ -1,8 +1,0 @@
-#goal
----
-#result
-float32 rel_heading # returns heading relative to current position
-float32 abs_heading # returns absolute heading of pinger
----
-#feedback
-string status   # status of sonar message

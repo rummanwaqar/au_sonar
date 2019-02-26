@@ -1,188 +1,139 @@
 #! /usr/bin/env python
 
+import json
 import signal
-import time
+import sys
 import os
-import Queue
-import argparse
-import numpy as np
-
-from sonar import PingReader
-from sonar import PreprocessorComm
-from sonar import PhaseShiftAnalysis
+import time
+import zmq
+import yaml
 
 import rospy
-import actionlib
-import au_sonar.msg
-from au_sonar.msg import SonarFeedback, SonarGoal, SonarResult
-from au_core.msg import PingStatus
-from std_msgs.msg import Float32
+from au_core.msg import DynamicsState
+from au_core_utils.load_topics import load_topics
 
 
-class SonarAction(object):
-    # create messages that are used to publish feedback/result
-    _feedback = SonarFeedback()
-    _result = SonarResult()
+def signal_handler(sig, frame):
+    print("Exiting!!")
+    rospy.signal_shutdown("SIGINT")
+    sys.exit(0)
 
-    def __init__(self, name, noOfPoints, noOfInterations):
-        self._action_name = name
-        self._as = actionlib.SimpleActionServer(
-            self._action_name,
-            au_sonar.msg.SonarAction,
-            execute_cb=self.execute_cb,
-            auto_start=False)
-        self._as.start()
-        self._isRunning = False
-        self._pings = []
-        self._noOfPoints = noOfPoints
-        self._noOfIterations = noOfInterations
 
-    def add_heading(self, data):
-        if self._isRunning:
-            self._pings.append(data)
+def load_params(filename, server_port, freq):
+    if os.path.exists(filename):
+        params = yaml.load(open(filename))
+        if freq is not None:
+            params['centerFreq'] = freq
 
-    def execute_cb(self, goal):
-        self._isRunning = True
-        self._pings = []
+        # setup client for ZMQ server
+        context = zmq.Context()
+        socket = context.socket(zmq.REQ)
+        socket.connect(server_port)
+        rospy.loginfo('Connected to param server at ' + server_port)
 
-        # helper variables
-        r = rospy.Rate(0.5)
-        success = True
+        for param, value in params.items():
+            cmd = "$set " + param + " " + str(value)
+            socket.send_string(cmd)
+            reply = socket.recv()
+            if cmd[1:] == reply:
+                rospy.loginfo('Wrote param ' + param + '=' + str(value))
+            else:
+                rospy.logerr('Incorrect response for ' + cmd + ' -> ' + reply)
+                return False
+        return True
+    else:
+        return False
 
-        # publish info to the console for the user
-        rospy.loginfo('{}: Executing, waiting for {} points'.format(
-            self._action_name, self._noOfPoints))
 
-        # start executing the action
-        while len(self._pings) <= self._noOfPoints:
-            # check that preempt has not been requested by the client
-            if self._as.is_preempt_requested():
-                rospy.loginfo('%s: Preempted' % self._action_name)
-                self._as.set_preempted()
-                success = False
-                self._isRunning = False
-                break
-            self._feedback.status = "{} of {}".format(
-                len(self._pings), self._noOfPoints)
-            self._as.publish_feedback(self._feedback)
-            r.sleep()
+class SonarHardware():
+    def __init__(self, state_topic, zmq_port):
+        # current state
+        self.__current_state = None
 
-        if success:
-            heading = None
-            print('------------------------------------------------')
-            print('initial data: {}'.format(self._pings))
-            for i in range(self._noOfIterations):
-                mean, std_dev, self._pings = PhaseShiftAnalysis.outlier_elimination(
-                    self._pings)
-                heading = np.mean(self._pings)
-                print('output {}: heading {} with data {}'.format(
-                    i, heading, self._pings))
-            print('------------------------------------------------')
-            self._result.rel_heading = heading
+        # initialize state sub
+        self.__state_sub = rospy.Subscriber(
+            state_topic, DynamicsState, self.__state_cb, queue_size=1)
+        rospy.loginfo('Subscribing for state to ' + state_topic)
 
-            rospy.loginfo('%s: Succeeded' % self._action_name)
-            self._as.set_succeeded(self._result)
+        # initialize zmq
+        context = zmq.Context()
+        self.__socket = context.socket(zmq.SUB)
+        self.__socket.connect(zmq_port)
+        self.__socket.setsockopt(zmq.SUBSCRIBE, '')
+        rospy.loginfo('Subscribing for sonar data to ' + zmq_port)
 
-        self._isRunning = False
+    def get_data(self):
+        if self.__current_state is None:
+            return None
+
+        message = json.loads(self.__socket.recv())
+        state_timestamp = int(self.__current_state.header.stamp.secs * 1e3 +
+                              self.__current_state.header.stamp.nsecs * 1e-6)
+        if message['timestamp'] - state_timestamp > 200:
+            rospy.logwarn('Sonar data and robot state out of sync by ' +
+                          str(message['timestamp'] - state_timestamp) + 'ms')
+        message['pose'] = self.__cvt_pose(self.__current_state.pose)
+        return message
+
+    def __state_cb(self, state):
+        self.__current_state = state
+
+    def __cvt_pose(self, state):
+        output = {
+            'position': {
+                'x': state.position.x,
+                'y': state.position.y,
+                'z': state.position.z
+            },
+            'orientation': {
+                'x': state.orientation.x,
+                'y': state.orientation.y,
+                'z': state.orientation.z,
+                'w': state.orientation.w
+            }
+        }
+        return output
 
 
 if __name__ == '__main__':
-    rospy.init_node('sonar')
+    # sigint handler
+    signal.signal(signal.SIGINT, signal_handler)
 
-    pingReader = None
-    preprocessor = None
+    # initialize ROS
+    rospy.init_node('sonar_node')
+    # read params
+    topics = load_topics()
+    freq = rospy.get_param("~freq", None)
+    log_dir = rospy.get_param("~log_dir", None)
+    data_port = rospy.get_param("~data_port", 'tcp://127.0.0.1:12345')
+    cmd_port = rospy.get_param("~cmd_port", 'tcp://127.0.0.1:12346')
+    params_file = rospy.get_param("~params_file", None)
 
-    freq = rospy.get_param("~freq", 27)
-    storage_path = rospy.get_param("~storage_path", None)
-    port = rospy.get_param("~port", '/dev/arvp/sonar')
-    noOfPoints = int(rospy.get_param("~noOfPoints", 8))
-    noOfIterations = int(rospy.get_param("~noOfIterations", 2))
+    save_file = None
+    # save file
+    if log_dir:
+        log_dir = os.path.expanduser(log_dir)
+        if not os.path.exists(log_dir):
+            rospy.loginfo('Making new directory for logs in ' + log_dir)
+            os.makedirs(log_dir)
+        filename = os.path.join(log_dir, time.strftime("%Y-%m-%d_%H-%M.txt"))
+        rospy.loginfo('Saving sonar data to :' + filename)
+        save_file = open(filename, "w+")
 
-    if storage_path == "":
-        storage_path = None
+    # init sonar hardware
+    # if load_params(filename=params_file, server_port=cmd_port, freq=freq):
+    #    rospy.loginfo('Preprocesser params loaded')
+    # else:
+    #    rospy.logerr(
+    #        'Could not load params from preprocessor at file ' + params_file)
+    #    exit(1)
+    sonar = SonarHardware(
+        state_topic=topics['/topic/sensor/dynamics_state'], zmq_port=data_port)
 
-    print "Frequency: {}".format(freq)
-    print "Storage path: {}".format(storage_path)
-    print "Preprocessor port: {}".format(port)
-    print "No of analysis points: {}".format(noOfPoints)
-    print "No of iterations for outlier detection: {}".format(noOfIterations)
-
-    # ping status pub
-    ping_status_pub = rospy.Publisher('~ping_status', PingStatus, queue_size=1)
-    gain_pub = rospy.Publisher('~gain', Float32, queue_size=2)
-
-    server = SonarAction(rospy.get_name(), noOfPoints, noOfIterations)
-
-    print "Initialized!"
-
-    data_queue = Queue.Queue()
-    ping_info_queue = Queue.Queue()
-
-    source_path = os.path.dirname(os.path.abspath(__file__))
-    preprocessor = PreprocessorComm(port, \
-                                    os.path.join(source_path, '../params/preprocessor.yaml'), \
-                                    ping_info_queue)
-    preprocessor.start()
-    if preprocessor.write_current_params():
-        print('All params loaded')
-    else:
-        print('Param loading failed')
-
-    pingReader = PingReader(data_queue)
-    pingReader.start()
-    store = False
-
-    preprocessor.send_param('centerFreq', int(freq), timeout=0.5)
-
-    if storage_path:
-        print('activated storage')
-        if os.path.exists(storage_path):
-            print('storing files {}'.format(storage_path))
-            store = True
-
-    ping = None
-    ping_status = None
-
-    while True:
-        try:
-            ping = data_queue.get(timeout=0.1)
-        except Queue.Empty:
-            pass
-        else:
-            ping_status = PingStatus()
-            ping_status.header.stamp = rospy.Time.now()
-            ping_status.isGood = 0
-            # wait for info here
-            if ping.update_ping_info(ping_info_queue):
-                ping_status.latency = ping.ping_info['timestamp'] - ping.timestamp
-                ping_status.mean = ping.ping_info['avgPkLv']
-                ping_status.variance = ping.ping_info['variance']
-                ping_status.gain = ping.ping_info['gain']
-                if ping.ping_info['cal']:
-                    gain_pub.publish(data=ping.ping_info['gain'])
-                    if store:
-                        ping.to_csv(storage_path)
-
-                    phase_analysis = PhaseShiftAnalysis(
-                        ping_data=ping, target_frequency=int(freq) * 1000)
-                    try:
-                        if phase_analysis.get_windowed_shift():
-                            heading = phase_analysis.get_heading()
-                            ping_status.heading = heading
-                            ping_status.freq = phase_analysis.debug['freq']
-                            ping_status.shift_x = phase_analysis.debug[
-                                'shiftX']
-                            ping_status.shift_y = phase_analysis.debug[
-                                'shiftY']
-                            ping_status.isGood = 1
-                            server.add_heading(heading)
-                        else:
-                            ping_status.error = 'window_check_failed'
-                    except RuntimeWarning, e:
-                        ping_status.error = str(e)
-                else:
-                    ping_status.error = "uncalibrated"
-            else:
-                ping_status.error = "missing_info"
-            data_queue.task_done()
-            ping_status_pub.publish(ping_status)
+    while not rospy.is_shutdown():
+        sonar_data = sonar.get_data()
+        if sonar_data is not None:
+            rospy.loginfo("Got sonar ping")
+            if save_file is not None:
+                save_file.write(json.dumps(sonar_data) + '\n')
+                save_file.flush()

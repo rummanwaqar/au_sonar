@@ -5,8 +5,8 @@
 
     <node
             pkg="au_sonar"
-            type="sonar_hardware.py"
-            name="sonar_hardware"
+            type="sonar_node.py"
+            name="sonar"
             output="screen">
 
         <param name="freq" value="$(arg freq)" />
