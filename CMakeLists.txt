@@ -11,11 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     genmsg
-    actionlib_msgs
     std_msgs
     geometry_msgs
-    actionlib
-    angles
     au_core
 )
 
@@ -24,11 +21,18 @@ catkin_python_setup()
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
-#generate_messages(
-#    DEPENDENCIES
-#    std_msgs
-#    geometry_msgs
-#)
+add_message_files(
+    FILES
+    Sonar.msg
+    SonarDebug.msg
+    FilterControl.msg
+)
+
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+    geometry_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -36,7 +40,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES au_sonar
-#  CATKIN_DEPENDS roscpp rospy
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 

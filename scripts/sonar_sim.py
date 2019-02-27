@@ -14,6 +14,7 @@ from au_core_utils.load_topics import load_topics
 class SonarSim:
     SIGNAL_AMPLITUDE = 1.6  # 1.6V is simulated
     DURATION = 1.4e-3  # 1.4ms ping period
+    BIAS = 1
 
     def __init__(self, pinger_freq, sampling_freq, noise, pinger_loc):
         """
@@ -36,10 +37,7 @@ class SonarSim:
         :return: ping data as a numpy matrix of size 4 x n, calculated heading for the ping
         """
         heading = self.__get_heading(robot_position, robot_yaw)
-        # calculate shifts for heading
-        ratio = math.tan(heading)
-        shift_b = 69.0 * math.pi / 180.0  # choose shift b arbitrarily
-        shift_a = ratio * shift_b
+        shift_a, shift_b = self.__get_shifts(heading)
         # generate sin waves
         ref = self.__generate_sin()
         a = self.__generate_sin(shift_a)
@@ -59,18 +57,47 @@ class SonarSim:
         return self.normalize(
             abs_heading - robot_yaw + random.gauss(0, self.noise))
 
+    @staticmethod
+    def __get_shifts(angle):
+        """
+        calculates a and b where a/b = tan(angle)
+        output shift if always under pi/2
+        :param angle: angle is rad
+        :return: shift a, shift b
+        """
+        # handle the tan discontinuity
+        if (math.pi / 2 - 0.02) < abs(angle) < (math.pi / 2 + 0.02):
+            shift_a = math.pi / 2
+            shift_b = 0
+            if angle < 0:
+                shift_a *= -1
+            return shift_a, shift_b
+
+        ratio = math.tan(angle)
+        shift_b = math.pi / 2
+        shift_a = ratio * shift_b
+        if abs(angle) > math.pi / 2:  # if 2nd or 3rd quadrant
+            shift_a *= -1
+            shift_b *= -1
+        # keep angles under pi/2
+        while abs(shift_a) > math.pi / 2:
+            shift_a /= 2
+            shift_b /= 2
+        return shift_a, shift_b
+
     def __generate_sin(self, phase_shift=0):
         """
         generates a sin wave as an estimation for the ping signal
         :param phase_shift: phase shift for the sine wave (rad)
         :return: numpy array representing the sine wave
         """
-        amp = self.SIGNAL_AMPLITUDE
+        amp = self.SIGNAL_AMPLITUDE / 2
         fs = self.sampling_freq
         duration = self.DURATION
         f = self.pinger_freq
+        b = self.BIAS
         return (amp * np.sin(2 * np.pi * np.arange(fs * duration) * f / fs +
-                             phase_shift)).astype(np.float32)
+                             phase_shift) + b).astype(np.float32)
 
     @staticmethod
     def normalize(angle, limit=math.pi):

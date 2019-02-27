@@ -1,18 +1,20 @@
 <launch>
-
-    <arg name="freq" default="27.0" />
-    <arg name="log_dir" default="~/logs/" />
+    <arg name="freq" default="27e3" />
+    <arg name="data_port" default="tcp://10.42.43.125:6969" />
+    <arg name="cmd_port" default="tcp://10.42.43.125:6969" />
+    <arg name="log_dir" default="" />
 
     <node
             pkg="au_sonar"
             type="sonar_node.py"
             name="sonar"
             output="screen">
-
-        <param name="freq" value="$(arg freq)" />
+        <param name="freq" type="double" value="$(arg freq)" />
+        <param name="num_particles" type="int" value="2000" />
+        <param name="sense_noise" type="double" value="7" />
         <param name="log_dir" value="$(arg log_dir)" />
-        <param name="data_port" value="tcp://10.42.43.125:6969" />
-        <param name="cmd_port" value="tcp://10.42.43.125:6868" />
+        <param name="data_port" value="$(arg data_port)" />
+        <param name="cmd_port" value="$(arg cmd_port)" />
         <param name="params_file" value="$(find au_sonar)/params/preprocessor.yaml" />
     </node>
 </launch>
