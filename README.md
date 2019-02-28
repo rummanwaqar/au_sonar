@@ -1,5 +1,7 @@
 # Passive Sonar Triangulation System
 
+![Output GIF](docs/output.gif)
+
 The sonar system is divided into two parts:
 * Sonar DAQ system (on Beaglebone)
 * Sonar processing system (on TX2)
@@ -34,6 +36,12 @@ Start the particle filter by publishing to `/sonar/ctrl` topic.
 
 #### Simulator mode
 Run `roslaunch au_sonar sonar_sim.launch`
+
+
+#### GUI
+Run `rosrun au_sonar sonar_gui.py`
+
+![GUI](docs/gui.png)
 
 ## Sonar node details
 #### Topics
